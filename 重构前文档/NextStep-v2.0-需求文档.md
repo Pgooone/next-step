@@ -33,7 +33,7 @@
 | F2 | 大动作前有计划闸；失败最多自重试 1 次，然后停下给选项 | 🔒 产品定义 |
 | F3 | 本地优先、纯文件、无数据库、单用户 | 🔒 产品定义 |
 | F4 | 内核策略：fork 0.84.2 为基线，**改动只限品牌与发行层**；领域逻辑全走扩展/SDK 层；loop 级改动单独评审（D1 已拍板） | 🔒 已拍板（D1） |
-| F5 | 领域层与 UI / 内核解耦；领域层绝不被客户端 value-import | 🔧 实现约定 |
+| F5 | 领域逻辑与 pi 接线、UI 解耦——**单包内文件夹边界**（`src/domain/` 零 pi import、零 UI import，靠目录约定 + code review 强制，ADR-001 裁决 B）；领域逻辑绝不被客户端 value-import | 🔧 实现约定（2026-08-17 ADR-001 修订：原「包边界」改「文件夹边界」） |
 | F6 | 每条需求必须有可断言的验收标准，否则不进范围 | 🔧 实现约定（本期强制） |
 
 ### 2.2 本期新增红线（可被机械检查）
@@ -91,8 +91,8 @@
 | 层 | 放什么 | 依赖约束 | 怎么测 |
 |---|---|---|---|
 | L0 上游 pi | agent loop、会话树、内置工具 | **fork 基线 0.84.2，改动只限品牌与发行层**（D1 拍板）；领域逻辑不得进入 L0；loop 级改动单独评审 | — |
-| L1 `next-step-core` | diff 解析、sourceRef 血缘图、提案状态机、重试策略、doc/coding 模式规则、闸门判定、归因算法 | **零 pi 依赖、零 UI 依赖**，纯 TS | 纯单测，不需模型不需界面 |
-| L2 `next-step-pi`（= HarnessAdapter） | registerTool / registerCommand / tool_call 拦截 / tool_result 改写 / appendEntry / 事件订阅 | **只有这层 import pi** | `SessionManager.inMemory()` + stub 模型 |
+| L1 `src/domain/`（单包内文件夹） | diff 解析、sourceRef 血缘图、提案状态机、重试策略、doc/coding 模式规则、闸门判定、归因算法 | **零 pi import、零 UI import**（文件夹边界，ADR-001 裁决 B） | 纯单测，不需模型不需界面 |
+| L2 `src/pi/`（单包内文件夹，唯一 import pi 处） | registerTool / registerCommand / tool_call 拦截 / tool_result 改写 / appendEntry / 事件订阅 | **只有这些文件 import pi**（无显式适配器接口，接线为普通模块——ADR-001） | `SessionManager.inMemory()` + stub 模型 |
 | L3 两个壳 | CLI 壳 = pi 本体；Web 壳 = pi-web（只读起步）→ 薄壳（M5 起补写入） | 只读会话条目；**不得包含任何领域判断** | 手动 / E2E |
 
 分层健康的单一标准：**删掉 Web 壳，CLI 什么也不少；删掉 CLI 壳，Web 什么也不少。**
