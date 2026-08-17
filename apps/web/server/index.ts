@@ -1,6 +1,7 @@
 import type { AddressInfo } from "node:net";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { NEXTSTEP_DIR_NAME } from "@pgoone/next-step-pi/src/domain/config/paths.ts";
 import { ProjectRegistry } from "@pgoone/next-step-pi/src/domain/domain/project-registry.ts";
 import { ArtifactService } from "@pgoone/next-step-pi/src/domain/domain/artifact-service.ts";
@@ -31,6 +32,9 @@ const server = createWebServer({
   artifactService: new ArtifactService(registry),
   pendingStore: new PendingChangeStore(registry),
   auditSessionManager: new WebPanelSessionManager(join(dataDir, "web-panel.jsonl")),
+  // T1-12 前端产物（esbuild 打包 dist-web；与 dist-server 同层，bundle 后 import.meta.url 仍指向 dist-server/）。
+  // 用 fileURLToPath 解码：pathname 会把中文路径 URL 编码（%E9...），fs 无法按编码路径访问。
+  staticDir: fileURLToPath(new URL("../dist-web/", import.meta.url)),
 });
 
 const port = Number(process.env.PORT ?? 8787);

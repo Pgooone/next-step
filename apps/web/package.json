@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build:server": "node scripts/build-server.mjs",
-    "server": "npm run build:server && node dist-server/index.js"
+    "server": "npm run build:server && npm run build:web && node dist-server/index.js",
+    "build:web": "node scripts/build-web.mjs"
   },
   "devDependencies": {
     "@pgoone/next-step-pi": "*",

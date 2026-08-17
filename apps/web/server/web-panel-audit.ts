@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { appendFileSync, mkdirSync, openSync, rmSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { AuditEntryPayload } from "@pgoone/next-step-pi/src/domain/audit/entries.ts";
 
@@ -54,6 +54,18 @@ export class WebPanelSessionManager {
     mkdirSync(dirname(this.filePath), { recursive: true });
     appendFileSync(this.filePath, `${JSON.stringify(entry)}\n`, "utf-8");
     return entry.id;
+  }
+
+  /**
+   * 审计回放（T1-12，P1-4 数据管线）：面板「确认过 N 块」与「撤销块数」从自家
+   * web-panel.jsonl 回放取数（artifact_resolved.acceptedBlocks / artifact_proposed.diffBlockCount），
+   * 非从版本 diff 重算。纯读取：逐行解析、append-only 顺序返回；文件不存在 → 空数组。
+   */
+  readAll(): WebPanelJsonlEntry[] {
+    if (!existsSync(this.filePath)) return [];
+    const raw = readFileSync(this.filePath, "utf-8").trim();
+    if (!raw) return [];
+    return raw.split("\n").map((line) => JSON.parse(line) as WebPanelJsonlEntry);
   }
 }
 

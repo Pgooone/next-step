@@ -1,10 +1,11 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import {
   createServer as createHttpServer,
   type IncomingMessage,
   type Server,
   type ServerResponse,
 } from "node:http";
+import { extname, isAbsolute, join, normalize } from "node:path";
 import { createEntryAuditPort, type AuditSessionManager } from "@pgoone/next-step-pi/src/ports/audit-port.ts";
 import {
   ArtifactError,
@@ -30,6 +31,7 @@ import {
   type GateDeps,
 } from "@pgoone/next-step-pi/src/domain/gate/pending-gate-service.ts";
 import type { DecisionPort } from "@pgoone/next-step-pi/src/domain/gate/ports.ts";
+import type { WebPanelJsonlEntry } from "./web-panel-audit";
 import {
   buildApprovalResponse,
   buildArtifactResolved,
@@ -57,8 +59,13 @@ export type WebServerDeps = {
   registry: ProjectRegistry;
   artifactService: ArtifactService;
   pendingStore: PendingChangeStore;
-  /** L2 工厂入参的最小面（本仓直写实现 WebPanelSessionManager，见 ./web-panel-audit）。 */
-  auditSessionManager: AuditSessionManager;
+  /**
+   * L2 工厂入参的最小面（本仓直写实现 WebPanelSessionManager，见 ./web-panel-audit）。
+   * 交叉面 readAll 供审计回放端点（T1-12，P1-4）取「确认过 N 块」计数。
+   */
+  auditSessionManager: AuditSessionManager & { readAll: () => WebPanelJsonlEntry[] };
+  /** 静态资源目录（T1-12 前端产物 dist-web）；不传则无静态路由（测试用）。 */
+  staticDir?: string;
 };
 
 /** EntryDecisionPort 第一期语义（详设 §2.2 冻结注记）：只记条目不阻塞。 */
@@ -249,7 +256,45 @@ function buildRoutes(deps: WebServerDeps, auditPort: ReturnType<typeof createEnt
         return { artifact };
       },
     },
+    {
+      // T1-12 审计回放（P1-4 数据管线）：面板「确认过 N 块」读自家 web-panel.jsonl——
+      // artifact_resolved.acceptedBlocks 计数 + artifact_proposed.diffBlockCount，非从版本 diff 重算。
+      // 纯读取 + 按 artifactId 过滤（序列化层职责，无领域判断）。
+      method: "GET",
+      pattern: /^\/api\/audit\/replay$/,
+      handler: async (ctx) => {
+        const artifactId = ctx.query.get("artifactId");
+        const entries = deps.auditSessionManager.readAll().map((e) => e.data);
+        return {
+          entries: artifactId !== null ? entries.filter((e) => e.artifactId === artifactId) : entries,
+        };
+      },
+    },
   ];
+}
+
+/** 静态资源 Content-Type（仅前端产物需要的几种；未知类型回 text/plain）。 */
+const STATIC_TYPES: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+};
+
+/** 静态文件服务（T1-12）：GET 且未命中 API 路由时从 staticDir 取文件，/ → index.html。 */
+function serveStatic(staticDir: string, pathname: string, res: ServerResponse): void {
+  const rel = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
+  const abs = normalize(join(staticDir, rel));
+  // 路径穿越防护：解析后必须仍在 staticDir 内（../ 逃逸 → 404，不外泄真实路径）
+  if (isAbsolute(rel) || !abs.startsWith(normalize(staticDir))) {
+    return sendJson(res, 404, { error: "NOT_FOUND", message: `未知资源: ${pathname}` });
+  }
+  if (!existsSync(abs)) {
+    return sendJson(res, 404, { error: "NOT_FOUND", message: `未知资源: ${pathname}` });
+  }
+  res.writeHead(200, { "Content-Type": STATIC_TYPES[extname(abs)] ?? "text/plain; charset=utf-8" });
+  res.end(readFileSync(abs));
 }
 
 /** 领域错误 → HTTP 状态映射（详设 §6 错误映射注释；序列化层职责，非领域判断）。 */
@@ -316,17 +361,21 @@ export function createWebServer(deps: WebServerDeps): Server {
       const route = routes.find(
         (r) => r.method === req.method && r.pattern.test(url.pathname),
       );
-      if (!route) {
-        return sendJson(res, 404, { error: "NOT_FOUND", message: `未知路由: ${req.method} ${url.pathname}` });
+      if (route) {
+        const body = req.method === "POST" ? await readBody(req) : {};
+        const ctx: RouteContext = {
+          params: (url.pathname.match(route.pattern)?.slice(1) ?? []).map(decodeURIComponent),
+          query: url.searchParams,
+          body,
+        };
+        const result = await route.handler(ctx);
+        return sendJson(res, 200, result);
       }
-      const body = req.method === "POST" ? await readBody(req) : {};
-      const ctx: RouteContext = {
-        params: (url.pathname.match(route.pattern)?.slice(1) ?? []).map(decodeURIComponent),
-        query: url.searchParams,
-        body,
-      };
-      const result = await route.handler(ctx);
-      sendJson(res, 200, result);
+      // 未命中 API 路由：有静态目录则服务前端产物（T1-12），否则 404
+      if (deps.staticDir !== undefined && req.method === "GET") {
+        return serveStatic(deps.staticDir, url.pathname, res);
+      }
+      return sendJson(res, 404, { error: "NOT_FOUND", message: `未知路由: ${req.method} ${url.pathname}` });
     })().catch((err: unknown) => {
       const { status, body } = mapError(err);
       sendJson(res, status, body);

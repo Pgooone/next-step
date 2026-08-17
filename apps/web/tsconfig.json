@@ -5,5 +5,5 @@
     // 跨包 import 带 .ts 扩展（Node 原生 ESM 直跑 server 需要；noEmit 下允许）
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts", "server/**/*.ts"]
+  "include": ["src/**/*.ts", "server/**/*.ts", "web/**/*.ts"]
 }

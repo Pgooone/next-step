@@ -492,6 +492,76 @@ describe("POST /api/artifacts/:id/external/reject", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 审计回放端点（T1-12：P1-4 数据管线——回滚报告「确认过 N 块」的数据源）
+// ---------------------------------------------------------------------------
+
+describe("GET /api/audit/replay（审计回放，P1-4）", () => {
+  it("返回全部条目；按 artifactId 过滤后含 artifact_resolved.acceptedBlocks（确认过 N 块取数）", async () => {
+    const { id } = createArtifact("设计文档", "alpha\nbeta\ngamma\n");
+    await createPendingViaMerge(id, "alpha\nBETA\n");
+    const pending = await env.api("GET", `/api/artifacts/${id}/pending`);
+    const changeId = pending.body.changes[0].change.id;
+    const accepted = pending.body.changes[0].change.diffBlocks[0].id;
+    await env.api("POST", `/api/artifacts/${id}/pending/${changeId}/resolve`, { action: "accept" });
+
+    const r = await env.api("GET", `/api/audit/replay?artifactId=${id}`);
+    expect(r.status).toBe(200);
+    expect(Array.isArray(r.body.entries)).toBe(true);
+    const resolved = r.body.entries.filter((e: any) => e.kind === "artifact_resolved");
+    expect(resolved).toHaveLength(1);
+    expect(resolved[0].acceptedBlocks).toEqual([accepted]); // 「确认过 N 块」计数源
+    const proposed = r.body.entries.filter((e: any) => e.kind === "artifact_proposed");
+    expect(proposed).toHaveLength(1);
+    expect(proposed[0].diffBlockCount).toBeGreaterThan(0); // 「撤销块数」计数源
+  });
+
+  it("无 artifactId 过滤返回全部条目（壳零判断：过滤与否由查询参数透传）", async () => {
+    const { id } = createArtifact("设计文档", "v1 内容\n");
+    await createPendingViaMerge(id, "v1 内容\n外部改动\n"); // 产生 artifact_external_resolved 审计
+    const r = await env.api("GET", "/api/audit/replay");
+    expect(r.status).toBe(200);
+    expect(r.body.entries.length).toBeGreaterThanOrEqual(1);
+    expect(r.body.entries.some((e: any) => e.artifactId === id)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 静态资源（T1-12：dist-web 静态托管 + 穿越防护）
+// ---------------------------------------------------------------------------
+
+describe("静态资源路由（T1-12 前端产物）", () => {
+  it("GET / 返回 index.html；路径穿越 → 404", async () => {
+    const tmp = mkdtempSync(join(tmpdir(), "nextstep-web-static-"));
+    writeFileSync(join(tmp, "index.html"), "<html>panel</html>", "utf-8");
+    const registry2 = new ProjectRegistry(join(tmp, "projects.json"));
+    const server2 = createWebServer({
+      registry: registry2,
+      artifactService: new ArtifactService(registry2),
+      pendingStore: new PendingChangeStore(registry2),
+      auditSessionManager: new WebPanelSessionManager(join(tmp, "web-panel.jsonl")),
+      staticDir: tmp,
+    });
+    await new Promise<void>((resolve) => server2.listen(0, resolve));
+    const port2 = (server2.address() as AddressInfo).port;
+    try {
+      const index = await fetch(`http://127.0.0.1:${port2}/`);
+      expect(index.status).toBe(200);
+      expect(await index.text()).toBe("<html>panel</html>");
+      expect(index.headers.get("content-type")).toContain("text/html");
+      // 未命中 API 的 GET 静态文件
+      const f = await fetch(`http://127.0.0.1:${port2}/x.js`);
+      expect(f.status).toBe(404);
+      // 路径穿越（%2E%2E 编码逃逸）→ 404 不外泄真实路径（服务端不解码 + startsWith 双保险）
+      const esc = await fetch(`http://127.0.0.1:${port2}/%2E%2E/package.json`);
+      expect(esc.status).toBe(404);
+    } finally {
+      await new Promise<void>((resolve2) => server2.close(() => resolve2()));
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 静态审查：壳零领域判断（卡内代码审查项的可执行形态）
 // ---------------------------------------------------------------------------
 
