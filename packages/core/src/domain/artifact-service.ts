@@ -129,9 +129,8 @@ export class ArtifactService {
 
   /**
    * 外部编辑保护（D-V2-06）：物化覆盖前，断言真实文件未被外部手改。
-   * `expectedPriorContent` = 本次覆盖前「上一当前版」的 content（= 我们上次物化写下的内容）；
-   * 读真实文件现状与之比对，**不一致说明被外部改过** → 抛 EXTERNAL_MODIFIED 拒绝（防 AI 确认静默覆盖丢失）。
-   * 真实文件不存在（被外部删/尚未物化）视为「无外部改动」，放行。无 filePath 的旧 artifact 也放行。
+   * 比对逻辑已抽成公共纯函数 {@link detectExternalModification}（T1-06，供面板检测
+   * `checkExternalModification` 共用同一实现），此处仅把 modified:true 映射为领域错误。
    *
    * 刻意与 {@link materialize} 分离、在写任何新版本/元数据**之前**调用：一旦判定外部改动则整次
    * submit/rollback 干净失败，不留「版本已加但真实文件没更新」的半截状态。
@@ -142,9 +141,8 @@ export class ArtifactService {
     expectedPriorContent: string,
   ): void {
     const abs = this.materializedPath(projectId, artifact);
-    if (!abs || !existsSync(abs)) return;
-    const onDisk = readFileSync(abs, "utf-8");
-    if (onDisk !== expectedPriorContent) {
+    const status = detectExternalModification(abs, expectedPriorContent);
+    if (status.modified) {
       throw new ArtifactError(
         "EXTERNAL_MODIFIED",
         `真实文件已被外部修改，拒绝覆盖以防丢失：${artifact.filePath}（请先同步）`,
@@ -429,10 +427,64 @@ export class ArtifactService {
     }
   }
 
+  /**
+   * 物化真实文件的绝对路径（无 filePath 返回 undefined）。artifact 不存在抛 NOT_FOUND。
+   * 供外部手改检测（T1-06 checkExternalModification）读取文件现状——比对逻辑在
+   * {@link detectExternalModification}，两侧共用同一实现。
+   */
+  materializedAbsPath(projectId: string, id: string): string | undefined {
+    const artifact = this.readMeta(projectId, id);
+    return this.materializedPath(projectId, artifact);
+  }
+
+  /**
+   * 覆盖式物化（T1-06，P1-7）：把**当前版** content 原子写回物化真实文件。
+   *
+   * **明示语义——用户指令路径，刻意不调用 {@link assertNotExternallyModified}**：该检测挡的是
+   * AI 静默覆盖外部改动（submit/rollback 的防丢护栏）；本方法只在用户显式选择
+   * 「拒绝采纳外部手改、恢复系统版本」时由 external-modification-service 调用，外部改动
+   * 本来就是要被丢弃的对象，走检测反而会把自己挡死。
+   *
+   * **不生成新版本（H4 定案）**：内容未变（= 当前版 content），生成 v{n+1}=v{n} 是幽灵版本，
+   * 污染 get_artifact_history；也不改 artifact.json（元数据无任何变化）。
+   * 有未决 pending 时不影响：pending 针对的基底内容仍是当前版，baseVersion 校验继续兜底。
+   * 无 filePath（旧 artifact）→ 无物化可恢复，静默跳过（同 materialize 语义）。
+   */
+  rematerializeCurrentVersion(projectId: string, id: string): Artifact {
+    const artifact = this.readMeta(projectId, id);
+    const content = this.readVersionContent(projectId, id, artifact.currentVersion);
+    this.materialize(projectId, artifact, content);
+    return artifact;
+  }
+
   /** 「临时文件 + rename」原子落盘（仿 dispatch-store / agent-profile-store.atomicWrite）。 */
   private atomicWrite(filePath: string, content: string): void {
     const tmp = `${filePath}.tmp-${process.pid}`;
     writeFileSync(tmp, content, "utf-8");
     renameSync(tmp, filePath);
   }
+}
+
+/** onDiskExcerpt 的截断长度（仅预览定位用；完整差异走外部 diff，详设 §6）。 */
+const EXTERNAL_EXCERPT_MAX_CHARS = 200;
+
+/**
+ * 外部手改检测的公共纯函数（T1-06 从旧仓 assertNotExternallyModified artifact-service.ts:130-144
+ * 抽取，供两处共用同一实现）：读真实文件现状 vs 期望内容（= 当前版快照 content）**逐字节比对**。
+ * - 文件不存在（被外部删/尚未物化）→ 未修改（旧仓 :136「文件不存在放行」语义保持）。
+ * - absPath 为 undefined（无 filePath 的旧 artifact）→ 未修改。
+ * - modified:true 时附 onDiskExcerpt（磁盘现状前 200 字符预览，超长以 … 截断）。
+ */
+export function detectExternalModification(
+  absPath: string | undefined,
+  expectedContent: string,
+): { modified: boolean; onDiskExcerpt?: string } {
+  if (!absPath || !existsSync(absPath)) return { modified: false };
+  const onDisk = readFileSync(absPath, "utf-8");
+  if (onDisk === expectedContent) return { modified: false };
+  const excerpt =
+    onDisk.length > EXTERNAL_EXCERPT_MAX_CHARS
+      ? `${onDisk.slice(0, EXTERNAL_EXCERPT_MAX_CHARS)}…`
+      : onDisk;
+  return { modified: true, onDiskExcerpt: excerpt };
 }
