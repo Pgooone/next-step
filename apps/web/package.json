@@ -9,10 +9,14 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:server": "node scripts/build-server.mjs",
+    "server": "npm run build:server && node dist-server/index.js"
   },
   "devDependencies": {
+    "@pgoone/next-step-pi": "*",
     "@types/node": "^24.0.0",
+    "esbuild": "^0.28.0",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"
   }
