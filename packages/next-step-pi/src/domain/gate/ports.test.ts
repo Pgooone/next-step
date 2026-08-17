@@ -4,9 +4,10 @@
  *   gate 收到后 pending 保留，工具返回「已提案未确认，changeId=…」——语义由 T1-05 承接）。
  * - 端口接口可被注入实现（L2 的 CliDecisionPort / pi appendEntry 是 T1-07 / T1-09 的事，
  *   此处用 stub 证明接口形状可用）。
- * - 红线：本卡 L1 新增文件 grep 不到 UI 上下文引用（§2.1）；packages/core 无 pi 依赖（B1）。
+ * - 红线：本卡 L1 新增文件 grep 不到 UI 上下文引用（§2.1）；src/domain/ 全目录零 pi import（B1，ADR-001 B 文件夹边界）。
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -96,11 +97,16 @@ describe("L1 红线（B1 / §2.1）", () => {
     }
   });
 
-  it("packages/core 无 @earendil-works/* 依赖（B1 保持）", () => {
-    const pkg = JSON.parse(
-      readFileSync(fileURLToPath(new URL("../../package.json", import.meta.url)), "utf-8"),
-    ) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
-    const all = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
-    expect(all.filter((name) => name.startsWith("@earendil-works/"))).toEqual([]);
+  it("src/domain/ 全目录无 pi（@earendil-works）import（ADR-001 B 文件夹边界，B1 保持）", () => {
+    // 原断言「packages/core 无 pi 依赖」（包边界）随 ADR-001 B 单包合并失效，
+    // 等价纪律 = domain 文件夹零 pi import（hermes 同款软纪律，此处以测试固化）。
+    // 排除 .test.ts：断言文件本身含 @earendil-works 字面量（如 pending-gate-service.test.ts 的 grep 守卫），
+    // 纪律针对的是生产源码。
+    const domainDir = fileURLToPath(new URL("../", import.meta.url));
+    const files = readdirSync(domainDir, { recursive: true }) as string[];
+    for (const rel of files.filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"))) {
+      const src = readFileSync(path.join(domainDir, rel), "utf-8");
+      expect(src, `src/domain/${rel} 不应 import pi`).not.toContain("@earendil-works");
+    }
   });
 });

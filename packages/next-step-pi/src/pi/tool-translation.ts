@@ -1,5 +1,5 @@
 import type { ToolDefinition } from "@earendil-works/pi-coding-agent";
-import type { NextStepToolDef } from "@pgoone/next-step-core";
+import type { NextStepToolDef } from "./harness-adapter";
 
 /**
  * L2 翻译层（正本 §5.1 动作 3 的类型侧）：NextStepToolDef（L1 纯数据）→ pi ToolDefinition。

@@ -2,7 +2,7 @@
   "name": "@pgoone/next-step-pi",
   "version": "0.0.0",
   "private": true,
-  "description": "L2 适配层：唯一 import pi 的包（high-level-design §5；T1-01 仅占位骨架，后续卡实现）",
+  "description": "唯一 pi 包（ADR-001 B 单包形态）：src/domain 零 pi import 的领域内核 + src/pi 与 src/ports 接线（pi 0.84.2 精确 pin，升级走显式回归）",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -12,7 +12,6 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@pgoone/next-step-core": "*",
     "@types/node": "^24.0.0",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"

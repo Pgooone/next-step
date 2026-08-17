@@ -2,7 +2,7 @@
   "name": "nextstep",
   "version": "0.0.0",
   "private": true,
-  "description": "Next-Step v2.0 monorepo（L0 pi-fork / L1 next-step-core / L2 next-step-pi / L3 双壳），布局见 docs/rounds/round-1/design/high-level-design.md §5",
+  "description": "Next-Step v2.0 monorepo（L0 pi-fork / 唯一 pi 包 next-step-pi〔src/domain + src/pi + src/ports，ADR-001 B〕 / L3 双壳），布局见 docs/rounds/round-1/design/high-level-design.md §5",
   "workspaces": [
     "packages/*",
     "apps/*"

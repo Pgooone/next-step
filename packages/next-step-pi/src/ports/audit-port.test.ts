@@ -1,12 +1,12 @@
 import { SessionManager } from "@earendil-works/pi-coding-agent";
-import { buildApprovalRequest } from "@pgoone/next-step-core";
+import { buildApprovalRequest } from "../domain/audit/entries";
 import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { createHarnessAdapter } from "../harness-adapter";
+import { createHarnessAdapter } from "../pi/harness-adapter";
 import { createEntryAuditPort } from "./audit-port";
-import { createStubModel } from "../test-helpers";
+import { createStubModel } from "../pi/test-helpers";
 
 /**
  * T1-07 验收断言（AuditPort pi 实现）：

@@ -1,5 +1,6 @@
 import type { SessionManager } from "@earendil-works/pi-coding-agent";
-import type { AuditEntryPayload, AuditPort } from "@pgoone/next-step-core";
+import type { AuditEntryPayload } from "../domain/audit/entries";
+import type { AuditPort } from "../domain/gate/ports";
 
 /**
  * AuditPort 的 pi 实现（详细设计 §2.3）：appendEntry 自定义条目落会话 JSONL。

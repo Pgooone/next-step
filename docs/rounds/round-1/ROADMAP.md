@@ -50,11 +50,13 @@ L3 壳
 
 | 步 | 卡 | 做什么 | 验证点 |
 |---|---|---|---|
-| 1 搬家 | T1-02 | 三服务 + lcs + file-name **原样搬**进 `packages/core`（签名与语义不动） | 旧仓单测平移全绿（回归护栏） |
-| 2 升级 | T1-03~06 | 在 L1 内补 v2.0 缺口：baseVersion 冲突校验、审计条目、闸门守卫、手改三动作——**仍然不知道 pi** | L1 纯单测（无模型无终端，毫秒级） |
-| 3 包装 | T1-07 | 新建 `packages/pi-ext`（唯一 import pi 的包）：HarnessAdapter 6 动作 + AuditPort 的 appendEntry 实现 | `SessionManager.inMemory()` 集成测试 |
+| 1 搬家 | T1-02 | 三服务 + lcs + file-name **原样搬**进领域目录（签名与语义不动） | 旧仓单测平移全绿（回归护栏） |
+| 2 升级 | T1-03~06 | 在领域层补 v2.0 缺口：baseVersion 冲突校验、审计条目、闸门守卫、手改三动作——**仍然不知道 pi** | 纯单测（无模型无终端，毫秒级） |
+| 3 包装 | T1-07 | pi 接线层（`src/pi/`，唯一 import pi 的文件夹）：六动作 + AuditPort 的 appendEntry 实现 | `SessionManager.inMemory()` 集成测试 |
 | 4 暴露 | T1-09/10 | 六工具注册（create_artifact / propose_edit / list_artifacts + 只读三件套）+ doc 会话装配 | AC-1.1~1.4；工具集物理无 write/edit |
-| 5 分发 | 发行轨 | `next-step-pi` 打成 pi 扩展包（官方 Package 机制，`pi install` 可装）；fork 后随 `nextstep` 发行内置 | `pi install` 装上即得六工具 |
+| 5 分发 | 发行轨 | `@pgoone/next-step-pi` 打成 pi 扩展包（官方 Package 机制，`pi install` 可装）；fork 后随 `nextstep` 发行内置 | `pi install` 装上即得六工具 |
+
+> **ADR-001 B 重组后形态（2026-08-17）**：`packages/core` + `packages/pi-ext` 已合并为单包 `packages/next-step-pi`（src/domain 零 pi import 软纪律 / src/pi 接线 / src/ports 审计口），显式翻译官接口已废除。上文步骤 1–3 的「两包」表述为当时历史，物理路径以仓库现状为准。
 
 要点：第 1-2 步的产物永远可以脱离 pi 单测、换地基不重写；「pi 的 Package」身份只发生在第 3-5 步的包装层。
 

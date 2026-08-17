@@ -10,23 +10,15 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type {
-  AgentReply,
-  ContextUsage,
-  HarnessAdapter,
-  NextStepToolDef,
-  SessionEntry,
-  SessionHandle,
-  SessionStartOptions,
-  SubagentRequest,
-  SubagentResult,
-} from "@pgoone/next-step-core";
+import type { AuditPort, DecisionPort } from "../domain/gate/ports";
 import { translateToolDef } from "./tool-translation";
 
 /**
  * HarnessAdapter 的 pi 实现（L2，正本 §5.1 六动作的 1:1 落点）。
- * 本包是全仓唯一 import pi 的地方（B1 红线）；本文件只做「pi 对象 ↔ L1 类型」
- * 翻译与接线，零领域判断（判断全在 L1）。
+ * 本包是全仓唯一 import pi 的地方（B1 红线）；本文件只做「pi 对象 ↔ 领域类型」
+ * 翻译与接线，零领域判断（判断全在 domain）。
+ * ADR-001 B：显式翻译官契约接口已废除，本文件是普通模块；
+ * 六动作数据类型（原契约类型）内联于本文件，domain 侧不再持有。
  *
  * 落点表（概设 §4）：
  * 1. startSession      → createAgentSession()（toolsWhitelist / excludeTools / systemPrompt / agentDir 透传）
@@ -36,6 +28,37 @@ import { translateToolDef } from "./tool-translation";
  * 5. spawnSubagent     → 官方 examples/extensions/subagent 进程范式（本期实现 + 单测，不接线）
  * 6. getContextUsage   → extension 的 context 事件（每次 LLM 调用前的 messages 快照）
  */
+
+/** JSON Schema 纯数据：工具参数 schema 只是一份数据，由本层翻译成 pi 的 TypeBox ToolDefinition。 */
+export type JsonSchema = Record<string, unknown>;
+
+export type SessionStartOptions = {
+  cwd: string;
+  agentDir: string;
+  systemPrompt?: string;
+  tools: NextStepToolDef[]; // 注册进会话的自定义工具
+  toolsWhitelist: string[]; // 能力层白名单（doc 模式物理禁 write/edit 的落点之一）
+  excludeTools?: string[]; // 能力层显式排除（双保险）
+  decisionPort: DecisionPort; // 闸门（详细设计 §3）
+  auditPort: AuditPort; // 审计条目写回（详细设计 §2.3）
+  sourceActor: string; // 本会话 Agent 身份（写入 version.author / sourceActor / list_my_artifacts 的「名下」）
+  projectId: string; // 闭包注入的当前项目（旧仓 doc-tools.ts 同款装配范式）
+};
+export type SessionHandle = { id: string };
+export type AgentReply = { text: string; turnEnd: boolean };
+export type NextStepToolDef = {
+  // 领域纯数据；本层负责转 pi ToolDefinition
+  name: string;
+  description: string;
+  parameters: JsonSchema;
+  promptGuidelines?: string[]; // 旧仓 propose_edit 已验证的「整篇 vs 残篇」双通道约束
+  execute(args: Record<string, unknown>, signal: AbortSignal): Promise<NextStepToolResult>;
+};
+export type NextStepToolResult = { content: { type: "text"; text: string }[] };
+export type SessionEntry = { id: string; type: string; ts: string; payload: Record<string, unknown> };
+export type SubagentRequest = { prompt: string; tools?: string[]; model?: string }; // 第二期细化
+export type SubagentResult = { text: string; usage: ContextUsage };
+export type ContextUsage = { totalTokens: number; inputTokens: number; outputTokens: number; entryCount: number };
 
 /** context 事件携带的 message 类型（pi 的 AgentMessage 未从主入口导出，经 ContextEvent 取）。 */
 type PiAgentMessage = ContextEvent["messages"][number];
@@ -110,16 +133,16 @@ function textOf(content: unknown): string {
 }
 
 /**
- * 创建 HarnessAdapter（L2 工厂）。返回类型是 L1 HarnessAdapter 的超集：
- * 6 个动作签名与 L1 定义逐字一致；dispose 是 L2 生命周期管理（释放底层
- * AgentSession），不是第 7 个动作（动作 = L1 领域对会话能力的需求面）。
+ * 创建 HarnessAdapter（L2 工厂）。六动作方法面 + dispose：
+ * dispose 是 L2 生命周期管理（释放底层 AgentSession），不是第 7 个动作
+ * （动作 = 领域对会话能力的需求面）。
  */
-export function createHarnessAdapter(deps: HarnessAdapterDeps = {}): HarnessAdapter & { dispose(): void } {
+export function createHarnessAdapter(deps: HarnessAdapterDeps = {}) {
   /** 动作 3 的 adapter 级注册表：registerTool 时刻记录，startSession 时经 pi.registerTool 注册进会话。 */
   const registeredTools: NextStepToolDef[] = [];
   const runtimes = new Map<string, SessionRuntime>();
 
-  const adapter: HarnessAdapter & { dispose(): void } = {
+  const adapter = {
     async startSession(options: SessionStartOptions): Promise<SessionHandle> {
       // inline extension factory = pi.registerTool / context 事件的唯一挂载点（官方 sdk 06-extensions 范式）
       const contextSnapshot: { messages?: PiAgentMessage[] } = {};

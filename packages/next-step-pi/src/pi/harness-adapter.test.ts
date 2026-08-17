@@ -1,8 +1,19 @@
 import { SessionManager } from "@earendil-works/pi-coding-agent";
-import type { DecisionPort, AuditPort, NextStepToolDef } from "@pgoone/next-step-core";
+import type { DecisionPort, AuditPort } from "../domain/gate/ports";
 import { afterEach, describe, expect, it } from "vitest";
 import { createHarnessAdapter } from "./harness-adapter";
-import type { ChildLike, SpawnFn } from "./harness-adapter";
+import type {
+  AgentReply,
+  ChildLike,
+  ContextUsage,
+  NextStepToolDef,
+  SessionEntry,
+  SessionHandle,
+  SessionStartOptions,
+  SpawnFn,
+  SubagentRequest,
+  SubagentResult,
+} from "./harness-adapter";
 import { createStubModel, type StubModel } from "./test-helpers";
 
 /**
@@ -10,6 +21,19 @@ import { createStubModel, type StubModel } from "./test-helpers";
  * spawnSubagent 用注入的伪进程（官方 subagent 范式的 stdout JSONL 事件流）；
  * getContextUsage 断言 usage 字段。
  */
+
+/**
+ * 六动作纪律形状（原 L1 契约接口形状逐字平移；ADR-001 B 废除显式接口后，
+ * 此处以本地结构 type 保持「签名无漂移 + 无第 7 个动作」断言）。
+ */
+type AdapterContractShape = {
+  startSession(options: SessionStartOptions): Promise<SessionHandle>;
+  sendMessage(handle: SessionHandle, message: string): Promise<AgentReply>;
+  registerTool(def: NextStepToolDef): void;
+  readSessionStream(handle: SessionHandle, opts: { afterEntryId?: string }): AsyncIterable<SessionEntry>;
+  spawnSubagent(handle: SessionHandle, req: SubagentRequest): Promise<SubagentResult>;
+  getContextUsage(handle: SessionHandle): Promise<ContextUsage>;
+};
 
 const noOpDecisionPort: DecisionPort = { ask: async () => ({ status: "deferred" }) };
 const noOpAuditPort: AuditPort = { append: async () => undefined };
@@ -435,9 +459,9 @@ describe("动作 6 · getContextUsage → context 事件（实现 + 单测，无
 });
 
 describe("6 动作纪律", () => {
-  it("无第 7 个动作：实现对象可赋值给 L1 HarnessAdapter 接口（签名无漂移）", async () => {
+  it("无第 7 个动作：实现对象可赋值给六动作纪律形状（签名无漂移）", async () => {
     const stub = await createStubModel();
-    const adapter: import("@pgoone/next-step-core").HarnessAdapter = newAdapter(stub);
+    const adapter: AdapterContractShape = newAdapter(stub);
     const methods = Object.keys(adapter).sort();
     expect(methods).toEqual(
       [
