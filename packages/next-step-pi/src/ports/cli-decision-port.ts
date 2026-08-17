@@ -100,6 +100,10 @@ function makeSummaryCard(
       if (prefix !== "") prefix = "";
       if (data === "y" || data === "n" || data === "b") {
         prefix = data;
+        // P3①（T1-09 复核挂账，T1-10 修）：前缀键也失效缓存——Enter 被拒提示后紧按
+        // y/n/b，hint 已清但 render 复用旧帧，提示滞留到数字键才消失；一行失效即
+        // 下一渲染帧按新 hint 绘制（「任何按键清除提示」的注释语义真正落地）。
+        component.cached = undefined;
         return;
       }
       if (data === "a") {

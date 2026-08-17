@@ -17,8 +17,14 @@ export function translateToolDef(def: NextStepToolDef): ToolDefinition<any, any,
     description: def.description,
     ...(def.promptGuidelines !== undefined ? { promptGuidelines: def.promptGuidelines } : {}),
     parameters: def.parameters as unknown as ToolDefinition<any, any, any>["parameters"],
-    execute: async (_toolCallId, args, signal) => {
-      const result = await def.execute(args as Record<string, unknown>, signal ?? new AbortController().signal);
+    execute: async (_toolCallId, args, signal, _onUpdate, ctx) => {
+      // ctx（ExtensionContext）透传：doc 装配的 propose_edit 在 execute 内把 ctx 喂给
+      // CliDecisionPort 的惰性 getContext（T1-09 形态，T1-10 接线）。
+      const result = await def.execute(
+        args as Record<string, unknown>,
+        signal ?? new AbortController().signal,
+        ctx,
+      );
       return { content: result.content, details: undefined };
     },
   };

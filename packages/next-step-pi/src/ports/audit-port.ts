@@ -2,6 +2,9 @@ import type { SessionManager } from "@earendil-works/pi-coding-agent";
 import type { AuditEntryPayload } from "../domain/audit/entries";
 import type { AuditPort } from "../domain/gate/ports";
 
+/** AuditPort 落点的最小依赖面（真 CLI 扩展侧经 pi.appendEntry 适配；测试用 inMemory SessionManager）。 */
+export type AuditSessionManager = Pick<SessionManager, "appendCustomEntry">;
+
 /**
  * AuditPort 的 pi 实现（详细设计 §2.3）：appendEntry 自定义条目落会话 JSONL。
  *
@@ -15,7 +18,7 @@ import type { AuditPort } from "../domain/gate/ports";
  * 过滤本产品条目、与第三方扩展条目（其他 customType）区分；条目 kind 等
  * 专属字段全部在 data（= AuditEntryPayload 整体，含 ns / kind / ts）。
  */
-export function createEntryAuditPort(sessionManager: SessionManager): AuditPort {
+export function createEntryAuditPort(sessionManager: AuditSessionManager): AuditPort {
   return {
     async append(entry: AuditEntryPayload): Promise<void> {
       sessionManager.appendCustomEntry("next-step", entry);

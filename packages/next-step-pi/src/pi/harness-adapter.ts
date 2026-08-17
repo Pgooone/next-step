@@ -3,7 +3,10 @@ import type {
   AgentSession,
   ContextEvent,
   CreateAgentSessionOptions,
+  ExtensionContext,
   SessionEntry as PiSessionEntry,
+  ToolCallEvent,
+  ToolCallEventResult,
   ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
 import { spawn } from "node:child_process";
@@ -43,6 +46,13 @@ export type SessionStartOptions = {
   auditPort: AuditPort; // 审计条目写回（详细设计 §2.3）
   sourceActor: string; // 本会话 Agent 身份（写入 version.author / sourceActor / list_my_artifacts 的「名下」）
   projectId: string; // 闭包注入的当前项目（旧仓 doc-tools.ts 同款装配范式）
+  /**
+   * 受管路径 tool_call 守卫（详细设计 §5.3，doc 模式装配注入）：
+   * 拦截任何工具调用的目标路径参数，命中受管集合 → { block: true }。
+   * 能力层白名单/excludeTools 是「工具面」禁用，守卫是「调用时点」的防御纵深
+   * （S5④「受管路径直写被硬挡」的可断言载体）。
+   */
+  toolCallGuard?: (event: ToolCallEvent) => ToolCallEventResult;
 };
 export type SessionHandle = { id: string };
 export type AgentReply = { text: string; turnEnd: boolean };
@@ -52,7 +62,16 @@ export type NextStepToolDef = {
   description: string;
   parameters: JsonSchema;
   promptGuidelines?: string[]; // 旧仓 propose_edit 已验证的「整篇 vs 残篇」双通道约束
-  execute(args: Record<string, unknown>, signal: AbortSignal): Promise<NextStepToolResult>;
+  /**
+   * 第三参 ctx（T1-10 新增）：pi execute 的 ExtensionContext 透传——doc 会话装配把
+   * execute 时点的 ctx 喂给 CliDecisionPort 的惰性 getContext（T1-09 形态），
+   * 让 ask 的交互画法在工具执行内可用。只读工具不消费。
+   */
+  execute(
+    args: Record<string, unknown>,
+    signal: AbortSignal,
+    ctx?: ExtensionContext,
+  ): Promise<NextStepToolResult>;
 };
 export type NextStepToolResult = { content: { type: "text"; text: string }[] };
 export type SessionEntry = { id: string; type: string; ts: string; payload: Record<string, unknown> };
@@ -153,6 +172,7 @@ export function createHarnessAdapter(deps: HarnessAdapterDeps = {}) {
         extensionFactories: [
           (pi) => {
             for (const def of toolDefs) pi.registerTool(def);
+            if (options.toolCallGuard !== undefined) pi.on("tool_call", options.toolCallGuard);
             pi.on("context", (event) => {
               contextSnapshot.messages = event.messages;
             });

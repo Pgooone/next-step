@@ -188,6 +188,25 @@ describe("CliDecisionPort · 主形态 A（TUI 汇总卡 custom 组件）", () =
     expect(decision.decisions.every((d) => d.decision === "accept")).toBe(true);
   });
 
+  it("P3①（T1-10 挂账修复）：Enter 被拒提示后按前缀键 y → 提示立即消失（render 缓存已失效）", async () => {
+    const { ctx, custom } = makeHarness();
+    const port = createCliDecisionPort(() => ctx);
+
+    const pending = port.ask(sampleRequest());
+    custom.press("\r"); // 全 pending → 提交被拒，提示上屏
+    expect(custom.render().join("\n")).toContain("仍有 5 块待决");
+
+    // 修复前：按 y（前缀键）不清缓存，render 复用旧帧、提示滞留；
+    // 修复后：y 按下当下缓存失效，下一渲染帧按新 hint（已清）绘制
+    custom.press("y");
+    expect(custom.render().join("\n")).not.toContain("仍有 5 块待决");
+
+    custom.press("1", "a", "\r"); // 正常继续交互不受影响（y1 决第 1 块 → a 全收 → 提交）
+    const decision = (await pending) as Extract<Decision, { status: "resolved" }>;
+    expect(decision.status).toBe("resolved");
+    expect(decision.decisions).toHaveLength(5);
+  });
+
   it("卡断言 4 + P1②：q 与 Esc（\\x1b）双路径取消 → Decision cancelled", async () => {
     for (const cancelKey of ["q", "\x1b"]) {
       const { ctx, custom } = makeHarness();
