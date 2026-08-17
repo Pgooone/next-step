@@ -48,12 +48,20 @@ export type ArtifactVersion = {
 
 /**
  * 领域错误：code 由 API 层映射为 HTTP 状态
- * （NOT_FOUND→404 / INVALID→422 / VERSION_CONFLICT→409 / EXTERNAL_MODIFIED→409）。
+ * （NOT_FOUND→404 / INVALID→422 / VERSION_CONFLICT→409 / EXTERNAL_MODIFIED→409 /
+ * BASE_VERSION_CONFLICT→409）。
  * EXTERNAL_MODIFIED（D-V2-06）：物化前发现真实文件已被外部手改，拒绝静默覆盖。
+ * BASE_VERSION_CONFLICT（v2.0 T1-03，调查缺口②）：PendingChange 物化前发现
+ * artifact.currentVersion 已偏离提案创建时的 baseVersion（上游出新版/回滚），基底过期。
  */
 export class ArtifactError extends Error {
   constructor(
-    public readonly code: "NOT_FOUND" | "INVALID" | "VERSION_CONFLICT" | "EXTERNAL_MODIFIED",
+    public readonly code:
+      | "NOT_FOUND"
+      | "INVALID"
+      | "VERSION_CONFLICT"
+      | "EXTERNAL_MODIFIED"
+      | "BASE_VERSION_CONFLICT",
     message: string,
   ) {
     super(message);

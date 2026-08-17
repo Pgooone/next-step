@@ -11,7 +11,7 @@ import {
 import { join } from "node:path";
 import { NEXTSTEP_DIR_NAME } from "../config/paths";
 import { ProjectRegistry } from "./project-registry";
-import { ArtifactService, type Artifact } from "./artifact-service";
+import { ArtifactService, ArtifactError, type Artifact } from "./artifact-service";
 import { splitLines, lcsDiff, type DiffOp } from "./lcs";
 
 /**
@@ -47,6 +47,8 @@ export type PendingChange = {
   sourceActor: string;
   hitlMode: "per_block" | "whole" | "auto";
   createdAt: string;
+  /** v2.0 新增（T1-03，调查缺口②）：提案创建时 artifact.currentVersion 的显式快照。物化前校验，防挂起提案撞上上游回滚。 */
+  baseVersion: number;
 };
 
 /** 原始改动数据：replace 携整文件新旧内容；patch 携 edit 列表。 */
@@ -202,13 +204,18 @@ export function applyResolvedBlocks(change: PendingChange): string {
 // PendingChange 组装 + 落盘
 // ---------------------------------------------------------------------------
 
-/** 组装一个 replace（write 拦截）PendingChange，不落盘（落盘由 store）。 */
+/**
+ * 组装一个 replace（write 拦截）PendingChange，不落盘（落盘由 store）。
+ * baseVersion（详设 §1.1）：提案创建时 artifact.currentVersion 的显式快照，
+ * 由调用方（propose_edit 工具）从当前 artifact 取出后传入，物化前据此校验基底是否过期。
+ */
 export function buildReplacePendingChange(args: {
   artifactId: string;
   sourceActor: string;
   oldContent: string;
   newContent: string;
   hitlMode?: PendingChange["hitlMode"];
+  baseVersion: number;
 }): PendingChange {
   return {
     id: randomUUID(),
@@ -220,15 +227,17 @@ export function buildReplacePendingChange(args: {
     sourceActor: args.sourceActor,
     hitlMode: args.hitlMode ?? "per_block",
     createdAt: new Date().toISOString(),
+    baseVersion: args.baseVersion,
   };
 }
 
-/** 组装一个 patch（edit 拦截）PendingChange，不落盘（落盘由 store）。 */
+/** 组装一个 patch（edit 拦截）PendingChange，不落盘（落盘由 store）；baseVersion 语义同 replace。 */
 export function buildPatchPendingChange(args: {
   artifactId: string;
   sourceActor: string;
   edits: { oldText: string; newText: string }[];
   hitlMode?: PendingChange["hitlMode"];
+  baseVersion: number;
 }): PendingChange {
   return {
     id: randomUUID(),
@@ -240,6 +249,7 @@ export function buildPatchPendingChange(args: {
     sourceActor: args.sourceActor,
     hitlMode: args.hitlMode ?? "per_block",
     createdAt: new Date().toISOString(),
+    baseVersion: args.baseVersion,
   };
 }
 
@@ -352,8 +362,13 @@ export class PendingChangeStore {
    * 逐块 resolve + 「全决则物化新版本」一步到位（D4，§5.5 AC⑤；写盘红线守门）。
    *
    * 先 `resolveBlock` 翻块 state；翻完后若该条 PendingChange **全部块非 pending**（D-D4-4「一组」=单条），
-   * 则 `applyResolvedBlocks` 重建内容 → `ArtifactService.submitVersion`（If-Match 取当前 version 乐观锁）
-   * 出新版 → `remove` 删该 pending（pending 目录只放未决，D-D4-5 倾向删）。**写盘只在此处发生**，
+   * 则先校验 baseVersion（详设 §1.1，T1-03）：`artifact.currentVersion === change.baseVersion`
+   * 不符（上游出新版/回滚，提案基底过期）→ 抛 `ArtifactError("BASE_VERSION_CONFLICT")`（409 语义），
+   **干净失败、pending 文件不删**（保留现场供 discard / 重新提案比对，T1-05）。
+   * 旧 pending 文件无 baseVersion 字段（视为缺失）同样在此失败，文案提示重新提案（不留歧义）。
+   *
+   * 校验通过后 `applyResolvedBlocks` 重建内容 → `ArtifactService.submitVersion`（If-Match 取当前 version
+   * 乐观锁）出新版 → `remove` 删该 pending（pending 目录只放未决，D-D4-5 倾向删）。**写盘只在此处发生**，
    * 路由层退成薄调用——杜绝「编辑工具直接写盘 / 未全决就写盘」，且本步可单测（注入 ArtifactService）。
    *
    * 返回 `{ change, materialized, artifact? }`：materialized=是否已出新版；物化时附新 Artifact 供前端刷新。
@@ -371,8 +386,18 @@ export class PendingChangeStore {
       return { change, materialized: false };
     }
 
-    const newContent = applyResolvedBlocks(change);
     const current = this.artifactService.getArtifact(projectId, artifactId); // 取当前 version 作 If-Match
+    // baseVersion 校验（详设 §1.1）：先于 applyResolvedBlocks / submitVersion。
+    // 旧 pending 无该字段时 change.baseVersion 为 undefined ≠ 任何版号，同样落入此分支。
+    if (current.currentVersion !== change.baseVersion) {
+      const base = typeof change.baseVersion === "number" ? `v${change.baseVersion}` : "缺失";
+      throw new ArtifactError(
+        "BASE_VERSION_CONFLICT",
+        `上游版本已变更（当前 v${current.currentVersion} ≠ 提案基底 ${base}），请重新提案`,
+      );
+    }
+
+    const newContent = applyResolvedBlocks(change);
     const artifact = this.artifactService.submitVersion(projectId, artifactId, {
       content: newContent,
       note: `apply pending ${id}`,

@@ -147,6 +147,7 @@ describe("buildReplacePendingChange / buildPatchPendingChange", () => {
       sourceActor: "需求分析师",
       oldContent: "a",
       newContent: "b",
+      baseVersion: 1,
     });
     expect(pc.op).toBe("replace");
     expect(pc.targetType).toBe("artifact");
@@ -162,6 +163,7 @@ describe("buildReplacePendingChange / buildPatchPendingChange", () => {
       artifactId: "art-1",
       sourceActor: "agent-x",
       edits: [{ oldText: "x", newText: "y" }],
+      baseVersion: 1,
     });
     expect(pc.op).toBe("patch");
     expect(pc.diff).toEqual({ kind: "patch", edits: [{ oldText: "x", newText: "y" }] });
@@ -179,6 +181,7 @@ describe("PendingChangeStore", () => {
       sourceActor: "a",
       oldContent: "old",
       newContent: "new",
+      baseVersion: 1,
     });
     store.save(projectId, pc);
 
@@ -190,7 +193,7 @@ describe("PendingChangeStore", () => {
   });
 
   it("save 用原子写（不留 .tmp 残留）", () => {
-    const pc = buildReplacePendingChange({ artifactId: "art-9", sourceActor: "a", oldContent: "", newContent: "z" });
+    const pc = buildReplacePendingChange({ artifactId: "art-9", sourceActor: "a", oldContent: "", newContent: "z", baseVersion: 1 });
     store.save(projectId, pc);
     const pendingDir = join(dir, NEXTSTEP_DIR_NAME, "artifacts", "managed", "art-9", "pending");
     const leftover = readdirSync(pendingDir).filter((f) => f.includes(".tmp"));
@@ -218,9 +221,9 @@ describe("PendingChangeStore.listPendingChanges", () => {
   });
 
   it("列出该 artifact 全部 pending 变更，按 createdAt 升序", () => {
-    const a = buildReplacePendingChange({ artifactId: "art-1", sourceActor: "x", oldContent: "a", newContent: "b" });
+    const a = buildReplacePendingChange({ artifactId: "art-1", sourceActor: "x", oldContent: "a", newContent: "b", baseVersion: 1 });
     a.createdAt = "2026-01-01T00:00:00.000Z";
-    const b = buildReplacePendingChange({ artifactId: "art-1", sourceActor: "x", oldContent: "b", newContent: "c" });
+    const b = buildReplacePendingChange({ artifactId: "art-1", sourceActor: "x", oldContent: "b", newContent: "c", baseVersion: 1 });
     b.createdAt = "2026-01-02T00:00:00.000Z";
     // 先存较晚的，验证排序按 createdAt 而非落盘顺序
     store.save(projectId, b);
@@ -231,14 +234,14 @@ describe("PendingChangeStore.listPendingChanges", () => {
   });
 
   it("只返回该 artifact 自己的变更，不串其它 artifact", () => {
-    store.save(projectId, buildReplacePendingChange({ artifactId: "art-A", sourceActor: "x", oldContent: "", newContent: "1" }));
-    store.save(projectId, buildReplacePendingChange({ artifactId: "art-B", sourceActor: "x", oldContent: "", newContent: "2" }));
+    store.save(projectId, buildReplacePendingChange({ artifactId: "art-A", sourceActor: "x", oldContent: "", newContent: "1", baseVersion: 1 }));
+    store.save(projectId, buildReplacePendingChange({ artifactId: "art-B", sourceActor: "x", oldContent: "", newContent: "2", baseVersion: 1 }));
     expect(store.listPendingChanges(projectId, "art-A").length).toBe(1);
     expect(store.listPendingChanges(projectId, "art-B").length).toBe(1);
   });
 
   it("跳过解析失败的坏 json，不拖垮整列表", () => {
-    const ok = buildReplacePendingChange({ artifactId: "art-9", sourceActor: "x", oldContent: "", newContent: "ok" });
+    const ok = buildReplacePendingChange({ artifactId: "art-9", sourceActor: "x", oldContent: "", newContent: "ok", baseVersion: 1 });
     store.save(projectId, ok);
     const pendingDir = join(dir, NEXTSTEP_DIR_NAME, "artifacts", "managed", "art-9", "pending");
     writeFileSync(join(pendingDir, "broken.json"), "{ not json", "utf-8");
@@ -264,7 +267,7 @@ describe("applyResolvedBlocks", () => {
 
   it("全块 confirmed → 必等 newContent（splitLines 归一化）", () => {
     const pc = setAllBlockState(
-      buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW }),
+      buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW, baseVersion: 1 }),
       "confirmed",
     );
     expect(applyResolvedBlocks(pc)).toBe(NEW);
@@ -272,20 +275,20 @@ describe("applyResolvedBlocks", () => {
 
   it("全块 rejected → 必等 oldContent", () => {
     const pc = setAllBlockState(
-      buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW }),
+      buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW, baseVersion: 1 }),
       "rejected",
     );
     expect(applyResolvedBlocks(pc)).toBe(OLD);
   });
 
   it("全块仍 pending → 等 oldContent（未决=保持原样）", () => {
-    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW });
+    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW, baseVersion: 1 });
     expect(applyResolvedBlocks(pc)).toBe(OLD);
   });
 
   it("部分确认：mod 块 confirmed + add 块 rejected → 只应用 mod", () => {
     // OLD→NEW 切出两块：mod(OLD→NEW) + add(added5)
-    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW });
+    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW, baseVersion: 1 });
     const [mod, add] = pc.diffBlocks;
     expect(mod.kind).toBe("mod");
     expect(add.kind).toBe("add");
@@ -296,7 +299,7 @@ describe("applyResolvedBlocks", () => {
   });
 
   it("部分确认：mod 块 rejected + add 块 confirmed → 只应用 add", () => {
-    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW });
+    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW, baseVersion: 1 });
     const [mod, add] = pc.diffBlocks;
     mod.state = "rejected";
     add.state = "confirmed";
@@ -305,18 +308,18 @@ describe("applyResolvedBlocks", () => {
   });
 
   it("纯删除块 confirmed → 删掉旧行；rejected → 保留", () => {
-    const del = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: "a\nb\nc", newContent: "a\nc" });
+    const del = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: "a\nb\nc", newContent: "a\nc", baseVersion: 1 });
     expect(del.diffBlocks[0].kind).toBe("del");
     del.diffBlocks[0].state = "confirmed";
     expect(applyResolvedBlocks(del)).toBe("a\nc");
 
-    const del2 = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: "a\nb\nc", newContent: "a\nc" });
+    const del2 = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: "a\nb\nc", newContent: "a\nc", baseVersion: 1 });
     del2.diffBlocks[0].state = "rejected";
     expect(applyResolvedBlocks(del2)).toBe("a\nb\nc");
   });
 
   it("op=patch → 抛 INVALID（仅支持 replace）", () => {
-    const pc = buildPatchPendingChange({ artifactId: "a", sourceActor: "x", edits: [{ oldText: "x", newText: "y" }] });
+    const pc = buildPatchPendingChange({ artifactId: "a", sourceActor: "x", edits: [{ oldText: "x", newText: "y" }], baseVersion: 1 });
     expect(() => applyResolvedBlocks(pc)).toThrow(PendingChangeError);
     try {
       applyResolvedBlocks(pc);
@@ -326,7 +329,7 @@ describe("applyResolvedBlocks", () => {
   });
 
   it("diffBlocks 与 diff 失配（块数被人为篡改）→ 抛 INVALID", () => {
-    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW });
+    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: OLD, newContent: NEW, baseVersion: 1 });
     pc.diffBlocks.pop(); // 删掉一块制造失配
     expect(() => applyResolvedBlocks(pc)).toThrow(PendingChangeError);
   });
@@ -336,7 +339,7 @@ describe("applyResolvedBlocks", () => {
     // 切块：mod(A→A2) · del(B) · add(C)（被未改动行 m/t 隔开，文档序保持）
     const old = "h1\nA\nm\nB\nt";
     const neu = "h1\nA2\nm\nt\nC";
-    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: old, newContent: neu });
+    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: old, newContent: neu, baseVersion: 1 });
     expect(pc.diffBlocks.map((b) => b.kind)).toEqual(["mod", "del", "add"]);
     pc.diffBlocks[0].state = "confirmed"; // A→A2 接受
     pc.diffBlocks[1].state = "rejected"; // 删 B 拒绝 → 保留 B
@@ -351,7 +354,7 @@ describe("applyResolvedBlocks", () => {
 // ---------------------------------------------------------------------------
 describe("PendingChangeStore.resolveBlock / remove", () => {
   it("resolveBlock 指定块 confirm → 该块 state=confirmed 并落盘", () => {
-    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a\nOLD\nb", newContent: "a\nNEW\nb" });
+    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a\nOLD\nb", newContent: "a\nNEW\nb", baseVersion: 1 });
     store.save(projectId, pc);
     const blockId = pc.diffBlocks[0].id;
 
@@ -362,14 +365,14 @@ describe("PendingChangeStore.resolveBlock / remove", () => {
   });
 
   it("resolveBlock 指定块 reject → 该块 state=rejected", () => {
-    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a", newContent: "b" });
+    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a", newContent: "b", baseVersion: 1 });
     store.save(projectId, pc);
     const updated = store.resolveBlock(projectId, "art-r", pc.id, { blockId: pc.diffBlocks[0].id, action: "reject" });
     expect(updated.diffBlocks[0].state).toBe("rejected");
   });
 
   it("resolveBlock 省略 blockId → 全部 pending 块统一置态", () => {
-    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a\nOLD\nb\nc", newContent: "a\nNEW\nb\nc\nd" });
+    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a\nOLD\nb\nc", newContent: "a\nNEW\nb\nc\nd", baseVersion: 1 });
     store.save(projectId, pc);
     expect(pc.diffBlocks.length).toBeGreaterThan(1);
     const updated = store.resolveBlock(projectId, "art-r", pc.id, { action: "confirm" });
@@ -377,7 +380,7 @@ describe("PendingChangeStore.resolveBlock / remove", () => {
   });
 
   it("resolveBlock 省略 blockId 幂等跳过已决块（不回退已 reject 的块）", () => {
-    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a\nOLD\nb\nc", newContent: "a\nNEW\nb\nc\nd" });
+    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a\nOLD\nb\nc", newContent: "a\nNEW\nb\nc\nd", baseVersion: 1 });
     pc.diffBlocks[0].state = "rejected"; // 先手动决一块
     store.save(projectId, pc);
     const updated = store.resolveBlock(projectId, "art-r", pc.id, { action: "confirm" });
@@ -386,7 +389,7 @@ describe("PendingChangeStore.resolveBlock / remove", () => {
   });
 
   it("resolveBlock blockId 不存在 → NOT_FOUND", () => {
-    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a", newContent: "b" });
+    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a", newContent: "b", baseVersion: 1 });
     store.save(projectId, pc);
     try {
       store.resolveBlock(projectId, "art-r", pc.id, { blockId: "no-such-block", action: "confirm" });
@@ -409,7 +412,7 @@ describe("PendingChangeStore.resolveBlock / remove", () => {
   });
 
   it("remove 删除 pending 文件；再 get → NOT_FOUND；remove 不存在不抛", () => {
-    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a", newContent: "b" });
+    const pc = buildReplacePendingChange({ artifactId: "art-r", sourceActor: "x", oldContent: "a", newContent: "b", baseVersion: 1 });
     store.save(projectId, pc);
     store.remove(projectId, "art-r", pc.id);
     expect(() => store.get(projectId, "art-r", pc.id)).toThrow(PendingChangeError);
@@ -433,7 +436,7 @@ describe("PendingChangeStore.resolveAndMaterialize", () => {
   /** 建一个内容=oldContent 的受管 artifact，再对它建并落一条 oldContent→newContent 的 pending。 */
   function seed(oldContent: string, newContent: string): { artifactId: string; pcId: string } {
     const art = artifactSvc.createArtifact(projectId, { kind: "doc", title: "t", content: oldContent });
-    const pc = buildReplacePendingChange({ artifactId: art.id, sourceActor: "x", oldContent, newContent });
+    const pc = buildReplacePendingChange({ artifactId: art.id, sourceActor: "x", oldContent, newContent, baseVersion: 1 });
     store2.save(projectId, pc);
     return { artifactId: art.id, pcId: pc.id };
   }
@@ -487,8 +490,121 @@ describe("PendingChangeStore.resolveAndMaterialize", () => {
 
   it("artifact 不存在 → ArtifactError NOT_FOUND（物化阶段读当前版失败）", () => {
     // 直接对不存在的 artifact 造 pending（绕过 seed），全决触发物化时读 meta 抛 NOT_FOUND
-    const pc = buildReplacePendingChange({ artifactId: "ghost", sourceActor: "x", oldContent: "a", newContent: "b" });
+    const pc = buildReplacePendingChange({ artifactId: "ghost", sourceActor: "x", oldContent: "a", newContent: "b", baseVersion: 1 });
     store2.save(projectId, pc);
     expect(() => store2.resolveAndMaterialize(projectId, "ghost", pc.id, { action: "confirm" })).toThrow(ArtifactError);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// baseVersion 冲突校验（T1-03，详设 §1.1，调查缺口②）：提案基底快照 vs 物化时当前版
+// ---------------------------------------------------------------------------
+describe("PendingChangeStore.resolveAndMaterialize · baseVersion 校验（T1-03）", () => {
+  let artifactSvc: ArtifactService;
+  let storeBv: PendingChangeStore;
+
+  beforeEach(() => {
+    artifactSvc = new ArtifactService(registry);
+    storeBv = new PendingChangeStore(registry, artifactSvc);
+  });
+
+  /** 建一个受管 artifact 并用 submitVersion 推到 targetVersion（createArtifact 即 v1）。 */
+  function seedAtVersion(targetVersion: number): { artifactId: string; contentAt: string } {
+    let content = "line-1";
+    const art = artifactSvc.createArtifact(projectId, { kind: "doc", title: "t", content });
+    for (let v = 2; v <= targetVersion; v++) {
+      content = `line-${v}`;
+      artifactSvc.submitVersion(projectId, art.id, { content });
+    }
+    return { artifactId: art.id, contentAt: content };
+  }
+
+  it("build* 透传：baseVersion 写进 PendingChange（replace 与 patch 一致）", () => {
+    const pc = buildReplacePendingChange({ artifactId: "a", sourceActor: "x", oldContent: "a", newContent: "b", baseVersion: 7 });
+    expect(pc.baseVersion).toBe(7);
+    const patch = buildPatchPendingChange({ artifactId: "a", sourceActor: "x", edits: [{ oldText: "x", newText: "y" }], baseVersion: 9 });
+    expect(patch.baseVersion).toBe(9);
+  });
+
+  it("baseVersion 匹配（提案基底 v3 = 当前 v3）→ 物化出 v4、pending 删除", () => {
+    const { artifactId, contentAt } = seedAtVersion(3); // v1 → v2 → v3
+    const pc = buildReplacePendingChange({
+      artifactId,
+      sourceActor: "x",
+      oldContent: contentAt,
+      newContent: `${contentAt}\nNEW`,
+      baseVersion: 3,
+    });
+    storeBv.save(projectId, pc);
+
+    const res = storeBv.resolveAndMaterialize(projectId, artifactId, pc.id, { action: "confirm" });
+    expect(res.materialized).toBe(true);
+    expect(res.artifact?.currentVersion).toBe(4);
+    expect(artifactSvc.getArtifact(projectId, artifactId).currentVersion).toBe(4);
+    expect(() => storeBv.get(projectId, artifactId, pc.id)).toThrow(PendingChangeError); // pending 已删
+  });
+
+  it("baseVersion 失配（提案 v3 → 上游回滚出 v4）→ 抛 BASE_VERSION_CONFLICT、pending 仍在、版本链不变", () => {
+    const { artifactId, contentAt } = seedAtVersion(3);
+    const pc = buildReplacePendingChange({
+      artifactId,
+      sourceActor: "x",
+      oldContent: contentAt,
+      newContent: `${contentAt}\nNEW`,
+      baseVersion: 3, // 提案创建时的基底快照
+    });
+    storeBv.save(projectId, pc);
+
+    // 挂起窗口期：上游（如 Web 面板）先回滚到 v2 → 版本链追加 v4、currentVersion=4
+    artifactSvc.rollback(projectId, artifactId, { version: 2 });
+    expect(artifactSvc.getArtifact(projectId, artifactId).currentVersion).toBe(4);
+
+    let caught: unknown;
+    try {
+      storeBv.resolveAndMaterialize(projectId, artifactId, pc.id, { action: "confirm" });
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(ArtifactError);
+    // L1 断言 code 字段：BASE_VERSION_CONFLICT（409 语义，HTTP 映射在 API 层）
+    expect((caught as ArtifactError).code).toBe("BASE_VERSION_CONFLICT");
+    expect((caught as ArtifactError).message).toContain("当前 v4 ≠ 提案基底 v3");
+    // 干净失败：pending 文件仍在（保留现场供 discard / 重新提案，T1-05）
+    expect(() => storeBv.get(projectId, artifactId, pc.id)).not.toThrow();
+    // 版本链不变：currentVersion 仍 v4、版本文件仍 4 份
+    expect(artifactSvc.getArtifact(projectId, artifactId).currentVersion).toBe(4);
+    expect(artifactSvc.listVersions(projectId, artifactId).length).toBe(4);
+  });
+
+  it("旧 pending 无 baseVersion 字段（旧版数据）→ 校验失败并提示重新提案", () => {
+    const { artifactId } = seedAtVersion(1);
+    const pc = buildReplacePendingChange({
+      artifactId,
+      sourceActor: "x",
+      oldContent: "line-1",
+      newContent: "line-1\nNEW",
+      baseVersion: 1,
+    });
+    storeBv.save(projectId, pc);
+
+    // 构造旧版 fixture：删掉 baseVersion 字段后手写落盘（模拟 v2.0 之前的 pending 文件）
+    const legacy = JSON.parse(JSON.stringify(pc)) as Record<string, unknown>;
+    delete legacy.baseVersion;
+    const pendingPath = join(dir, NEXTSTEP_DIR_NAME, "artifacts", "managed", artifactId, "pending", `${pc.id}.json`);
+    writeFileSync(pendingPath, JSON.stringify(legacy, null, 2), "utf-8");
+
+    let caught: unknown;
+    try {
+      storeBv.resolveAndMaterialize(projectId, artifactId, pc.id, { action: "confirm" });
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(ArtifactError);
+    expect((caught as ArtifactError).code).toBe("BASE_VERSION_CONFLICT");
+    // 兼容语义（详设 §1.1）：不留歧义，直接提示重新提案
+    expect((caught as ArtifactError).message).toContain("请重新提案");
+    // pending 仍在、版本链不变
+    expect(() => storeBv.get(projectId, artifactId, pc.id)).not.toThrow();
+    expect(artifactSvc.getArtifact(projectId, artifactId).currentVersion).toBe(1);
   });
 });
