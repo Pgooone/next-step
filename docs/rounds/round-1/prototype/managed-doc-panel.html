@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>受管文档面板 · 原型（方案 B 文档内联）</title>
+<style>
+  :root{
+    --ink:#37352f; --ink-light:#787066; --bg:#ffffff; --bg-soft:#f7f6f3;
+    --line:#e9e7e2; --yellow:#e8a33d; --yellow-bg:#fdf6e7; --yellow-line:#f0d9a8;
+    --green:#2f9e63; --green-bg:#eef8f1; --green-line:#bfe3cc;
+    --red:#d9534f; --red-bg:#fdeeec; --red-line:#f2c4c0;
+    --blue:#3b7dd8; --blue-bg:#eef4fc;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color:var(--ink); background:var(--bg-soft); font-size:15px; line-height:1.75}
+
+  /* ── 开发注记条 ── */
+  .devnote{background:#2b2a27; color:#b8b3a8; font-size:12px; padding:6px 20px; letter-spacing:.5px}
+
+  /* ── 顶栏 ── */
+  .topbar{position:sticky; top:0; z-index:20; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .doc-title{font-size:17px; font-weight:650}
+  .doc-title .ver{color:var(--ink-light); font-weight:500; font-size:14px; margin-left:6px}
+  .badge{font-size:12.5px; padding:3px 10px; border-radius:99px; font-weight:600}
+  .badge.pending{background:var(--yellow-bg); color:#9a6b1a; border:1px solid var(--yellow-line)}
+  .badge.ok{background:var(--green-bg); color:#1f7a4a; border:1px solid var(--green-line)}
+  .spacer{flex:1}
+  .btn{border:1px solid var(--line); background:var(--bg); border-radius:6px; padding:6px 14px; font-size:13.5px; cursor:pointer; color:var(--ink)}
+  .btn:hover{background:var(--bg-soft)}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+
+  /* ── 横幅 ── */
+  .banner{margin:14px 20px 0; padding:12px 16px; border-radius:8px; font-size:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+  .banner .msg{flex:1}
+  .banner.warn{background:var(--yellow-bg); border:1px solid var(--yellow-line); color:#7c5a13}
+  .banner.info{background:var(--blue-bg); border:1px solid #c9dcf5; color:#27567f}
+  .banner.ok{background:var(--green-bg); border:1px solid var(--green-line); color:#1f7a4a}
+  .hidden{display:none}
+  .banner .btn{padding:4px 12px; font-size:13px}
+
+  /* ── 文档主体（全文 + 段落间 diff） ── */
+  main{max-width:800px; margin:30px auto 140px; padding:0 24px}
+  .doc h1{font-size:30px; margin:18px 0 8px}
+  .doc .meta{color:var(--ink-light); font-size:13.5px; margin-bottom:28px}
+  .doc h2{font-size:21px; margin:34px 0 10px; scroll-margin-top:96px}
+  .doc h3{font-size:17px; margin:22px 0 8px; scroll-margin-top:96px}
+  .doc p{margin:10px 0}
+  .doc ul{margin:10px 0 10px 22px}
+  .doc li{margin:4px 0}
+  .doc code{background:#f1f0ec; border-radius:4px; padding:1px 6px; font-size:13.5px}
+  .doc .lead{font-size:16px}
+
+  /* 改动块卡片（嵌在段落之间） */
+  .block{border:1.5px solid var(--yellow-line); background:var(--yellow-bg); border-radius:8px; padding:14px 16px 12px; margin:16px 0; scroll-margin-top:96px; transition:all .18s}
+  .block.accepted{border-color:var(--green-line); background:var(--green-bg)}
+  .block.rejected{border-color:var(--red-line); background:var(--red-bg); opacity:.72}
+  .block.settled-ok{border-color:transparent; background:var(--green-bg)}
+  .block.settled-rej{border-color:var(--red-line); background:var(--red-bg); opacity:.55}
+  .block-head{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+  .block-tag{font-size:12px; font-weight:700; color:var(--ink-light); letter-spacing:.5px}
+  .block-anchor{font-size:13.5px; font-weight:600}
+  .block-actions{margin-left:auto; display:flex; gap:6px}
+  .pick{width:34px; height:30px; border-radius:6px; border:1.5px solid var(--line); background:var(--bg); cursor:pointer; font-size:15px; line-height:1}
+  .pick.yes.on{background:var(--green); border-color:var(--green); color:#fff}
+  .pick.no.on{background:var(--red); border-color:var(--red); color:#fff}
+
+  /* 回滚态（方案 C）：正文展示历史版本内容，v4 提案未生效 */
+  body.rolled-back .block{opacity:.55; border-color:var(--line); background:var(--bg-soft)}
+  body.rolled-back .block .block-tag::after{content:" · 未生效（v4 提案）"}
+  body.rolled-back .block .pick{display:none}
+  body.rolled-back .block ins{display:none}
+  body.rolled-back .block del{text-decoration:none; background:transparent; color:inherit; padding:0}
+  body.rolled-back .block .block-note{color:#a5a099}
+  body.rolled-back .toc-item .toc-line{background:#c9c5bd !important}
+  .legacy{display:none}
+  body.rolled-back .legacy{display:block}
+  body.rolled-back .v4only{display:none}
+  .block-note{font-size:12.5px; margin-top:6px; color:var(--ink-light)}
+  del{background:#fbe4e2; color:#8f3733; text-decoration:line-through; text-decoration-color:#c97c78; padding:0 3px; border-radius:3px}
+  ins{background:#ddefe3; color:#1d6b43; text-decoration:none; padding:0 3px; border-radius:3px; font-weight:500}
+
+  /* ── 右侧滚动链（半透明，hover 展开，点击平滑滚动） ── */
+  .toc{position:fixed; right:14px; top:50%; transform:translateY(-50%); z-index:25; display:flex; flex-direction:column; gap:2px; align-items:flex-end; max-height:70vh}
+  .toc-item{display:flex; align-items:center; justify-content:flex-end; gap:8px; height:26px; cursor:pointer; opacity:.38; transition:opacity .15s; user-select:none}
+  .toc-item:hover, .toc-item.active{opacity:1}
+  .toc-line{width:20px; height:2.5px; border-radius:2px; background:#b3aea5; transition:all .22s; flex:none}
+  .toc-item:hover .toc-line, .toc-item.active .toc-line{width:34px; background:var(--ink)}
+  .toc-label{font-size:12px; color:var(--ink-light); white-space:nowrap; opacity:0; max-width:0; overflow:hidden; transform:translateX(8px); transition:all .22s; font-weight:500}
+  .toc-item:hover .toc-label, .toc-item.active .toc-label{opacity:1; max-width:220px; transform:none}
+  .toc-item.active .toc-label{color:var(--ink); font-weight:650}
+  /* diff 块节点颜色随确认状态 */
+  .toc-item.b-p .toc-line{background:var(--yellow)}
+  .toc-item.b-y .toc-line{background:var(--green)}
+  .toc-item.b-n .toc-line{background:var(--red)}
+  .toc-item.b-p:hover .toc-line, .toc-item.b-p.active .toc-line{background:var(--yellow)}
+  .toc-item.b-y:hover .toc-line, .toc-item.b-y.active .toc-line{background:var(--green)}
+  .toc-item.b-n:hover .toc-line, .toc-item.b-n.active .toc-line{background:var(--red)}
+  @media (max-width:1180px){ .toc{display:none} }
+
+  /* ── 悬浮操作条 ── */
+  .fab{position:fixed; right:22px; bottom:22px; z-index:30; background:var(--bg); border:1px solid var(--line); border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.12); padding:14px 16px; width:212px}
+  .fab .row{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--ink-light); margin-bottom:8px}
+  .fab .count{font-weight:700; color:var(--ink)}
+  .dots{display:flex; gap:5px; margin-bottom:12px}
+  .dot{width:12px; height:12px; border-radius:50%; background:#e3e1db; border:1px solid var(--line)}
+  .dot.y{background:var(--green); border-color:var(--green)}
+  .dot.n{background:var(--red); border-color:var(--red)}
+  .fab .btn{width:100%; margin-bottom:8px; text-align:center; font-weight:600}
+  .fab .btn.primary{background:var(--ink); color:#fff; border-color:var(--ink)}
+  .fab .btn.primary:not(:disabled):hover{background:#111}
+  .fab .hint{font-size:11.5px; color:#a5a099; text-align:center; margin-top:2px}
+
+  /* ── 版本链抽屉 ── */
+  .drawer-mask{position:fixed; inset:0; background:rgba(30,28,24,.28); z-index:40}
+  .drawer{position:fixed; top:0; right:0; bottom:0; width:380px; max-width:92vw; background:var(--bg); z-index:41; box-shadow:-8px 0 30px rgba(0,0,0,.14); padding:20px 22px; overflow-y:auto}
+  .drawer h3{font-size:17px; margin-bottom:4px}
+  .drawer .sub{font-size:12.5px; color:var(--ink-light); margin-bottom:18px}
+  .vrow{border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:10px; display:flex; align-items:center; gap:10px}
+  .vrow.current{border-color:var(--green-line); background:var(--green-bg)}
+  .vrow .vnum{font-weight:700; font-size:14px; width:34px}
+  .vrow .vinfo{flex:1; font-size:12.5px; color:var(--ink-light); line-height:1.5}
+  .vrow .vinfo b{color:var(--ink); font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="devnote">🔎 原型 · round-1 · 受管文档面板（D6 方案 B 文档内联）· 全文 + 段落间 diff + 右侧滚动链 · 可玩：逐块 ✓/✗、批量、写回、版本链回滚（方案 C：正文切换 + 回滚报告 + 撤销回滚）、外部手改</div>
+
+<header class="topbar">
+  <span class="doc-title">📄 Next-Step v2.0 · 设计文档<span class="ver" id="verLabel">v3 → v4</span></span>
+  <span class="badge pending" id="statusBadge">待确认 · 5 块</span>
+  <span class="spacer"></span>
+  <button class="btn" id="btnHistory">🕘 版本链</button>
+  <button class="btn" id="btnExt">⚠️ 演示：外部手改</button>
+  <button class="btn" id="btnReset">↺ 重置</button>
+</header>
+
+<div class="banner warn hidden" id="extBanner">
+  <span>⚠️</span>
+  <span class="msg"><b>检测到外部手改（EXTERNAL_MODIFIED）</b>：物化文件「设计文档.md」在系统外被修改（14:32，编辑器直写）。处理前版本操作已冻结。</span>
+  <button class="btn" id="extDiff">查看 diff</button>
+  <button class="btn" id="extMerge">以提案方式合并</button>
+  <button class="btn" id="extReject">拒绝采纳，恢复系统版本</button>
+</div>
+<div class="banner info hidden" id="infoBanner"><span class="msg" id="infoMsg"></span></div>
+<div class="banner ok hidden" id="okBanner"><span class="msg" id="okMsg"></span></div>
+
+<main>
+  <article class="doc" id="doc">
+    <h1>Next-Step v2.0 · 设计文档</h1>
+    <p class="meta">归属：设计阶段 · agent: designer · 提案时间 10 分钟前</p>
+
+    <h2 id="sec-1">§1 概述</h2>
+    <p class="lead">Next-Step v2.0 是一条本地多 Agent 产线：把「一句想法」变成「可动工的设计包 + 可评审的原型」。产线每一步的产物都受管、可逐块签字、可追溯到上游；成品出缺陷时能沿追溯链归因到具体阶段，改完只重跑下游。</p>
+    <p>使命：让一个人用一队 AI，稳定产出<b>别人敢接手动工</b>的设计包与原型——过程全程可见、每步可签字、出错可归因、经验可复用。</p>
+    <p>任何新功能必须写明落在哪根柱子上：<b>产能 / 可控 / 可追溯返工</b>；写不出，不做。本次重构要解的三条病根：P1 没有主干判据、P2 概念膨胀（六并二）、P3 没有追溯链（块级 sourceRef 补地基）。</p>
+
+    <h2 id="sec-2">§2 技术选型</h2>
+    <p>上游内核沿用 <code>@earendil-works/pi-coding-agent</code> monorepo。领域逻辑全部住在不认识 UI、也不认识 pi 的纯 TS 内核（L1）里；一层薄适配层（L2）把它接到 pi 的官方 Hook 上；CLI 和 Web 只是两个壳（L3），共享同一份会话 JSONL——改基座只改内核，两壳不动。</p>
+
+    <div class="block" data-id="1" id="block-1">
+      <div class="block-head">
+        <span class="block-tag">✏️ 修改 1/5</span><span class="block-anchor">§2.1 内核策略</span>
+        <span class="block-actions"><button class="pick yes" title="接受">✓</button><button class="pick no" title="拒绝">✗</button></span>
+      </div>
+      <p>内核跟随 <del>pi ^0.79.0（不 fork，纯扩展叠加）</del> <ins>fork 0.84.2 为基线：改动只限品牌与发行层（TUI 字样、包名、CLI 命令名、数据目录），领域逻辑仍全走扩展层，loop 级改动单独评审（D1 拍板）</ins>。</p>
+      <div class="block-note">来源：决策记录 D1（2026-08-17 拍板）· sourceRef 已记</div>
+    </div>
+
+    <p>发行形态：npm 个人账号发布，<code>npm i -g</code> 后运行 <code>nextstep</code> 命令即得装好全部修改的发行版；数据目录另起独立目录，不与原版 pi 互踩（D9 拍板）。</p>
+
+    <h3 id="sec-23" class="v4only">§2.3 Web 壳</h3>
+
+    <div class="block v4only" data-id="2" id="block-2">
+      <div class="block-head">
+        <span class="block-tag">➕ 新增 2/5</span><span class="block-anchor">§2.3 Web 壳选型</span>
+        <span class="block-actions"><button class="pick yes" title="接受">✓</button><button class="pick no" title="拒绝">✗</button></span>
+      </div>
+      <p><ins>Web 壳完全自建薄壳：不 fork pi-web、不部署原版作调试台。壳的职责收窄为「读会话 JSONL → 渲染 presentation 纯数据 → 写回 approval_response」，判断全在 L1，壳零领域判断；通用渲染器终端与 Web 共用同一份数据（D8 后续拍板）。</ins></p>
+      <div class="block-note">来源：决策记录 D8 后续拍板（2026-08-17）· sourceRef 已记</div>
+    </div>
+
+    <h2 id="sec-3">§3 架构 · 一核两壳</h2>
+    <p>四层分层：L0 上游 pi（fork 基线，改动只限品牌/发行层）→ L1 领域内核（零 pi 依赖、零 UI 依赖，纯单测毫秒级）→ L2 pi 适配层 HarnessAdapter（只有这层 import pi，恰好 6 个动作不预留）→ L3 双壳（只读会话条目，不得包含任何领域判断）。</p>
+    <ul>
+      <li><b>DecisionPort</b>：闸门绝不直接调 <code>ctx.ui</code>，只认 <code>ask(req) → Decision</code>；CLI 与 Web 两个实现，行为规则只有一份</li>
+      <li><b>presentation 是数据</b>：条目 payload 自带纯数据 presentation，两壳各写一个通用渲染器，新增条目类型两壳零改动</li>
+      <li><b>单 writer</b>：一个 session 同一时刻只有一个 writer；Web 想「写」就 fork 出自己的分支</li>
+      <li><b>唯一真相</b>：<code>sessions/*.jsonl</code> 是全部状态载体，不引入数据库</li>
+    </ul>
+    <p>分层健康的单一标准：删掉 Web 壳，CLI 什么也不少；删掉 CLI 壳，Web 什么也不少。</p>
+
+    <h2 id="sec-4" class="legacy">§4 旧部署方案</h2>
+    <p class="legacy">使用 PM2 进程守护 Next.js 进程，Nginx 做反向代理与静态资源分发；发布走手工清单：拉取代码 → <code>npm run build</code> → <code>pm2 reload</code> → 验证健康检查端点；回滚保留上一构建目录，切换软链完成。共 15 行流程与脚本（v4 提案整段删除，理由 D2：产物止于设计包 + 原型，部署走 v2.2 交接契约——回滚后本段恢复显示）。</p>
+
+    <div class="block" data-id="3" id="block-3">
+      <div class="block-head">
+        <span class="block-tag">➖ 删除 3/5</span><span class="block-anchor">§4 旧部署方案</span>
+        <span class="block-actions"><button class="pick yes" title="接受">✓</button><button class="pick no" title="拒绝">✗</button></span>
+      </div>
+      <p><del>§4 旧部署方案：PM2 进程守护 + Nginx 反代 + 手工部署清单（共 15 行流程与回滚脚本，此处折叠）……</del></p>
+      <div class="block-note">删除理由：D2 拍板——产物止于设计包 + 原型，「可上线」靠 v2.2 交接契约，自建部署链不做</div>
+    </div>
+
+    <h2 id="sec-5">§5 验收标准</h2>
+    <p>每条需求必须有可断言的验收标准（F6），否则不进范围。第一期出口：AC-1.1~1.4 全绿；F1 在纯 CLI 端到端成立；EXTERNAL_MODIFIED 保护实测有效；presentation 纯数据 + 通用渲染器承重实证通过。</p>
+
+    <div class="block" data-id="4" id="block-4">
+      <div class="block-head">
+        <span class="block-tag">✏️ 修改 4/5</span><span class="block-anchor">§5.1 确认交互</span>
+        <span class="block-actions"><button class="pick yes" title="接受">✓</button><button class="pick no" title="拒绝">✗</button></span>
+      </div>
+      <p>AC-1 确认交互 <del>仅逐块 ✓/✗</del> <ins>分档：整块收 / 逐块 / 混合（先全收再打回单块）；交互可分档，记账永远块级（D6 拍板）</ins>。</p>
+      <div class="block-note">来源：决策记录 D6（2026-08-17 拍板）· sourceRef 已记</div>
+    </div>
+
+    <p>Web 呈现以「文档内联沉浸审阅」为目标方案做承重实证，保底退「单卡逐块列表」；CLI 呈现以「汇总卡 + 快捷键」为主、「逐块流式」为可选模式。</p>
+
+    <h2 id="sec-a">附录 A · 引用与来源</h2>
+    <p>上游内核：pi monorepo（MIT）。官方 examples 挂载点：<code>plan-mode/</code>（计划闸）、<code>permission-gate.ts</code>（tool_call 拦截）、<code>protected-paths.ts</code>（路径保护）、<code>subagent/</code>（派子 Agent）。生态包裁定与安全依据见需求文档 §5.5 与附录 A。</p>
+
+    <div class="block" data-id="5" id="block-5">
+      <div class="block-head">
+        <span class="block-tag">✏️ 修改 5/5</span><span class="block-anchor">附录 A.1 内核引用</span>
+        <span class="block-actions"><button class="pick yes" title="接受">✓</button><button class="pick no" title="拒绝">✗</button></span>
+      </div>
+      <p>上游内核引用 <del>pi ^0.79.0</del> <ins>pi 0.84.2（fork 基线）；跟进纪律：UPSTREAM.md 对照 + 内核 diff 最小化清单（D1/D9 拍板）</ins>。</p>
+      <div class="block-note">来源：决策记录 D1 / D9（2026-08-17 拍板）· sourceRef 已记</div>
+    </div>
+  </article>
+</main>
+
+<!-- 右侧滚动链：标题 + diff 块混合导航 -->
+<nav class="toc" id="toc" aria-label="文档导航"></nav>
+
+<aside class="fab" id="fab">
+  <div class="row"><span>确认进度</span><span class="count" id="countLabel">0/5</span></div>
+  <div class="dots" id="dots"></div>
+  <button class="btn" id="allYes">✅ 全部接受</button>
+  <button class="btn" id="allNo">❌ 全部拒绝</button>
+  <button class="btn primary" id="writeback" disabled>⬆ 写回（approval_response）</button>
+  <div class="hint">全部块有着落后方可写回</div>
+</aside>
+
+<div class="drawer-mask hidden" id="drawerMask"></div>
+<aside class="drawer hidden" id="drawer">
+  <h3>🕘 版本链 · 设计文档.md</h3>
+  <p class="sub">append-only：历史永不改写；回滚 = 以旧版内容生成新版本</p>
+  <div id="vlist"></div>
+  <button class="btn" id="drawerClose" style="margin-top:10px">关闭</button>
+</aside>
+
+<script>
+(function(){
+  const N = 5;
+  let state = {};              // id -> 'y' | 'n' | undefined
+  let locked = false;          // 写回/回滚后锁定
+  let extMode = false;         // 外部手改冻结
+  let curVer = 4;
+
+  const $ = s => document.querySelector(s);
+  const blocks = () => Array.from(document.querySelectorAll('.block'));
+  const settledCount = () => blocks().filter(b => state[b.dataset.id]).length;
+
+  /* ── 滚动链 ── */
+  const tocItems = [
+    {id:'sec-1',   label:'§1 概述'},
+    {id:'sec-2',   label:'§2 技术选型'},
+    {id:'block-1', label:'✏️ 1/5 · 内核策略', block:1},
+    {id:'block-2', label:'➕ 2/5 · Web 壳选型', block:2},
+    {id:'sec-3',   label:'§3 架构'},
+    {id:'block-3', label:'➖ 3/5 · 旧部署方案', block:3},
+    {id:'sec-5',   label:'§5 验收标准'},
+    {id:'block-4', label:'✏️ 4/5 · 确认交互', block:4},
+    {id:'sec-a',   label:'附录 A'},
+    {id:'block-5', label:'✏️ 5/5 · 内核引用', block:5},
+  ];
+  const toc = $('#toc');
+  toc.innerHTML = tocItems.map(t => `
+    <div class="toc-item ${t.block ? 'b-p' : ''}" data-target="${t.id}" data-block="${t.block || ''}">
+      <span class="toc-label">${t.label}</span><span class="toc-line"></span>
+    </div>`).join('');
+  toc.querySelectorAll('.toc-item').forEach(el => {
+    el.onclick = () => document.getElementById(el.dataset.target)
+      .scrollIntoView({behavior:'smooth', block:'start'});
+  });
+  // 阅读位置高亮（scrollspy）
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      const el = toc.querySelector(`[data-target="${e.target.id}"]`);
+      if(el) el.classList.toggle('active', e.isIntersecting);
+    });
+  }, {rootMargin:'-18% 0px -70% 0px'});
+  tocItems.forEach(t => { const el = document.getElementById(t.id); if(el) spy.observe(el); });
+
+  function render(){
+    blocks().forEach(b => {
+      const s = state[b.dataset.id];
+      b.classList.toggle('accepted', s === 'y' && !locked);
+      b.classList.toggle('rejected', s === 'n' && !locked);
+      b.classList.toggle('settled-ok', s === 'y' && locked);
+      b.classList.toggle('settled-rej', s === 'n' && locked);
+      b.querySelector('.pick.yes').classList.toggle('on', s === 'y');
+      b.querySelector('.pick.no').classList.toggle('on', s === 'n');
+      // 滚动链节点颜色联动
+      const node = toc.querySelector(`[data-block="${b.dataset.id}"]`);
+      if(node){
+        node.classList.remove('b-p','b-y','b-n');
+        node.classList.add(s === 'y' ? 'b-y' : s === 'n' ? 'b-n' : 'b-p');
+      }
+    });
+    const n = settledCount();
+    $('#countLabel').textContent = n + '/' + N;
+    $('#dots').innerHTML = Array.from({length:N}, (_,i) => {
+      const s = state[String(i+1)];
+      return `<span class="dot ${s === 'y' ? 'y' : s === 'n' ? 'n' : ''}"></span>`;
+    }).join('');
+    $('#writeback').disabled = locked || extMode || n < N;
+    ['#allYes','#allNo'].forEach(id => $(id).disabled = locked || extMode);
+    $('#btnExt').disabled = locked || extMode;
+    $('#fab .hint').textContent = extMode && !locked ? '⛔ 有外部手改待处理，版本操作冻结' : '全部块有着落后方可写回';
+  }
+
+  blocks().forEach(b => {
+    const id = b.dataset.id;
+    b.querySelector('.pick.yes').onclick = () => { if(locked||extMode) return; state[id] = state[id]==='y' ? undefined : 'y'; render(); };
+    b.querySelector('.pick.no').onclick  = () => { if(locked||extMode) return; state[id] = state[id]==='n' ? undefined : 'n'; render(); };
+  });
+
+  $('#allYes').onclick = () => { blocks().forEach(b => state[b.dataset.id]='y'); render(); };
+  $('#allNo').onclick  = () => { blocks().forEach(b => state[b.dataset.id]='n'); render(); };
+
+  $('#writeback').onclick = () => {
+    const nv = nextVer++;
+    versions.push({v:nv, stage:'设计阶段', agent:'designer', time:'刚刚', note:'本次写回物化'});
+    locked = true; curVer = nv;
+    const acc = blocks().filter(b => state[b.dataset.id]==='y').length;
+    const rej = N - acc;
+    $('#okMsg').innerHTML = `✅ <b>已写回 approval_response（含逐块明细）</b>：接受 ${acc} 块 → 物化为 <b>v${nv}</b>；拒绝 ${rej} 块 → 保留 v${nv-1} 内容。裁决已落入 append-only 会话日志。`;
+    $('#okBanner').classList.remove('hidden');
+    const badge = $('#statusBadge');
+    badge.className = 'badge ok'; badge.textContent = `已确认 · v${nv} 已物化`;
+    $('#verLabel').textContent = `当前 v${nv}（提案自 v${nv-1}）`;
+    render();
+  };
+
+  /* ── 版本链（物化/回滚均写入 versions，append-only） ── */
+  const versions = [
+    {v:1, stage:'需求阶段', agent:'requirement-writer', time:'3 天前', note:'初稿'},
+    {v:2, stage:'需求阶段', agent:'requirement-writer', time:'2 天前', note:'补充验收标准'},
+    {v:3, stage:'设计阶段', agent:'designer',           time:'昨天',   note:'技术选型定稿'},
+  ];
+  let nextVer = 4; // 下一个将生成的版本号
+  function renderHistory(){
+    let html = versions.map(h => {
+      const isCur = locked && h.v === curVer;
+      return `
+      <div class="vrow ${isCur ? 'current' : ''}">
+        <span class="vnum">v${h.v}</span>
+        <span class="vinfo"><b>${h.stage}</b> · agent: ${h.agent}<br>${h.time} · ${h.note}</span>
+        ${isCur ? '<span style="font-size:12px;color:#1f7a4a;font-weight:600">当前</span>'
+          : locked ? `<button class="btn" data-rollback="${h.v}">回滚到此版</button>`
+          : `<button class="btn" disabled title="有待确认提案未处理，暂不可回滚">回滚到此版</button>`}
+      </div>`;
+    }).join('');
+    if(!locked){
+      html += `
+      <div class="vrow current">
+        <span class="vnum">v${nextVer}</span>
+        <span class="vinfo"><b>待确认提案</b><br>10 分钟前 · 5 块改动，等待你的裁决</span>
+      </div>`;
+    }
+    $('#vlist').innerHTML = html;
+    document.querySelectorAll('[data-rollback]').forEach(btn => {
+      btn.onclick = () => {
+        if(extMode || !locked) return;
+        const v = btn.dataset.rollback;
+        if(!confirm(`回滚到 v${v}：将以 v${v} 的内容生成新版本 v${nextVer}。\n历史版本不会被删除（append-only）。继续？`)) return;
+        const nv = nextVer++;
+        versions.push({v:nv, stage:'设计阶段', agent:'designer（用户回滚）', time:'刚刚', note:`自 v${v} 回滚生成`});
+        curVer = nv;
+        // 方案 C：正文切换 + 回滚报告 + 撤销回滚
+        const acc = blocks().filter(b => state[b.dataset.id]==='y').length;
+        document.body.classList.add('rolled-back');
+        const banner = $('#infoBanner');
+        banner.classList.remove('hidden');
+        banner.innerHTML = `
+          <span>↩️</span>
+          <span class="msg"><b>已回滚：v${nv} = v${v} 的内容</b>（正文已切换）。v4 的 5 块改动不在当前版本——其中你确认过的 ${acc} 块一并撤销；版本链完整保留，操作记录已写入会话日志（appendEntry）。</span>
+          <button class="btn" id="rbDiff">查看 v${nv} ↔ v4 差异</button>
+          <button class="btn" id="rbUndo">↩ 撤销回滚（恢复 v4 内容 → 生成 v${nextVer}）</button>`;
+        $('#rbDiff').onclick = () => alert(`（原型示意）v${nv} ↔ v4 差异：\n- v4：内核 fork 0.84.2、新增 §2.3 自建薄壳、删除 §4 部署方案、验收分档、引用 0.84.2\n+ v${nv}：恢复 v${v} 时代内容（§4 部署方案回来、§2.3 不存在……）`);
+        $('#rbUndo').onclick = () => {
+          const nv2 = nextVer++;
+          versions.push({v:nv2, stage:'设计阶段', agent:'designer（用户撤销回滚）', time:'刚刚', note:'撤销回滚，恢复 v4 内容'});
+          curVer = nv2;
+          document.body.classList.remove('rolled-back');
+          banner.innerHTML = `
+            <span>✅</span>
+            <span class="msg"><b>已撤销回滚：v${nv2} = v4 内容</b>（含你确认的 ${acc} 块，正文已恢复）。回滚版 v${nv} 保留在版本链上可随时再回滚。</span>`;
+          const badge = $('#statusBadge');
+          badge.className = 'badge ok'; badge.textContent = `当前 v${nv2}（撤销回滚 = v4 内容）`;
+          $('#verLabel').textContent = `当前 v${nv2}（撤销回滚 = v4 内容）`;
+          renderHistory(); render();
+        };
+        const badge = $('#statusBadge');
+        badge.className = 'badge ok'; badge.textContent = `当前 v${nv}（自 v${v} 回滚）`;
+        $('#verLabel').textContent = `当前 v${nv}（自 v${v} 回滚）`;
+        renderHistory(); render();
+      };
+    });
+  }
+  $('#btnHistory').onclick = () => { renderHistory(); $('#drawer').classList.remove('hidden'); $('#drawerMask').classList.remove('hidden'); };
+  $('#drawerClose').onclick = $('#drawerMask').onclick = () => { $('#drawer').classList.add('hidden'); $('#drawerMask').classList.add('hidden'); };
+
+  /* ── 外部手改演示 ── */
+  $('#btnExt').onclick = () => { extMode = true; $('#extBanner').classList.remove('hidden'); render(); };
+  $('#extDiff').onclick = () => alert('（原型示意）展开外部手改 diff：\n- 物化文件第 87 行被改为 …\n+ 系统版本第 87 行为 …');
+  $('#extMerge').onclick = () => { extMode = false; $('#extBanner').classList.add('hidden'); alert('（原型示意）外部手改已转为 propose_edit 提案：\n改动以新提案块呈现，走同一条逐块确认通道。'); render(); };
+  $('#extReject').onclick = () => { extMode = false; $('#extBanner').classList.add('hidden'); render(); };
+
+  $('#btnReset').onclick = () => location.reload();
+
+  render();
+})();
+</script>
+</body>
+</html>
