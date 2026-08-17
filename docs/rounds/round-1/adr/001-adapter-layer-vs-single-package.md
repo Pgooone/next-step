@@ -55,6 +55,19 @@
 
 仓库：`Pgooone/next-step`（私有）；DeepSeek 真模型测试 key 已备 `.env.pi-test`（gitignore 覆盖）。
 
+## 三点五、生态实证（2026-08-17 补，用户要求解剖 pi.dev/packages 复杂项目）
+
+下载解剖四个最复杂包（npm tarball 源码级分析）：
+
+| 包 | 规模 | 形态 | pi import 分布 |
+|---|---|---|---|
+| pi-hermes-memory（732 tests） | 52 文件 | 单包 | `src/store/`（18 文件）**零 pi import**，handlers/tools 才接线——事实分层 |
+| @quintinshaw/pi-dynamic-workflows | 103 文件 | 单包 | 33 个接线文件，**70 个核心逻辑文件不碰 pi**——事实分层 |
+| pi-subagents | 188 文件 | 单包 | 61/188 直接 import pi（33%），分层最松，无接口抽象 |
+| pi-mcp-adapter（454K/月） | 58 文件 | 单包扁平 | 本身是外部协议翻译器，内部不分层 |
+
+**结论**：①生态 0/4 用「接口包+适配包」两包架构——A 形态比生态重；②但最复杂的两包（hermes/workflows）自发形成**单包内文件夹级分层**（逻辑文件夹零 pi import）= B 方案形态，hermes 732 测试单包内跑证明可测性不牺牲；③单 package 是 pi 生态主流，用户直觉有生态背书。**该证据加强 B 的理由**；A 独有剩余优势仅「core 可独立发布」（本项目不需要）。
+
 ## 四、裁决路径（已定）
 
 1. **按现状（A 形态）跑完 T1-07~T1-13**——B 若中选，全部代码零废只挪窝，跑完不浪费
