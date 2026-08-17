@@ -1,0 +1,21 @@
+{
+  "name": "nextstep",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Next-Step v2.0 monorepo（L0 pi-fork / L1 next-step-core / L2 next-step-pi / L3 双壳），布局见 docs/rounds/round-1/design/high-level-design.md §5",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}

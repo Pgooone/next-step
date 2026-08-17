@@ -1,0 +1,19 @@
+{
+  "name": "@pgoone/next-step-web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "L3 Web 壳：薄 server + 前端（high-level-design §5；T1-01 仅占位骨架，后续卡实现）",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}

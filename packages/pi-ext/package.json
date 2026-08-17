@@ -1,0 +1,19 @@
+{
+  "name": "@pgoone/next-step-pi",
+  "version": "0.0.0",
+  "private": true,
+  "description": "L2 适配层：唯一 import pi 的包（high-level-design §5；T1-01 仅占位骨架，后续卡实现）",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}
