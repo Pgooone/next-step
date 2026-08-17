@@ -1,7 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "@pgoone/next-step-core": ["../core/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts"]
 }
