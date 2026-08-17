@@ -13,7 +13,7 @@
 | [T1-01](T1-01-monorepo骨架与路径常量.md) | monorepo 骨架与 .nextstep 路径常量（H1） | L1 基座 | — | 已完成 | 已过 |
 | [T1-02](T1-02-L1三服务原样搬与迁移回归.md) | L1 三服务原样搬 + 迁移回归（承重墙 1） | L1 | T1-01 | 已完成 | 已过 |
 | [T1-03](T1-03-baseVersion与冲突恢复路径.md) | PendingChange.baseVersion 与冲突校验 | L1 | T1-02 | 已完成 | 已过 |
-| [T1-04](T1-04-审计条目族与端口接口.md) | 审计条目族 v1 + presentation + 端口接口 + sourceRef | L1 | T1-02, T1-03 | 待开始 | 未过 |
+| [T1-04](T1-04-审计条目族与端口接口.md) | 审计条目族 v1 + presentation + 端口接口 + sourceRef | L1 | T1-02, T1-03 | 已完成 | 已过 |
 | [T1-05](T1-05-pending-gate-service.md) | pending-gate-service（闸门编排 + 守卫 + discard） | L1 | T1-03, T1-04 | 待开始 | 未过 |
 | [T1-06](T1-06-外部手改处理与sourceRef写入.md) | 外部手改处理（check/reject/merge） | L1 | T1-04, T1-05 | 待开始 | 未过 |
 | [T1-07](T1-07-HarnessAdapter与AuditPort.md) | HarnessAdapter 6 动作 + AuditPort pi 实现 | L2 | T1-01, T1-04 | 待开始 | 未过 |
