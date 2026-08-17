@@ -1,0 +1,6 @@
+[2026-08-17T19:41:20.791Z] execute.enter {"mode":"tui","hasUI":true}
+[2026-08-17T19:41:24.478Z] execute.result {"decision":{"status":"resolved","decisions":[{"blockId":"69ed3fa6-304e-45f3-a1ae-2325e35aa3c4","decision":"accept"},{"blockId":"c23209db-fad9-4b2d-8ae7-48accf54fa54","decision":"reject"}]},"elapsedMs":3630}
+[2026-08-17T19:41:27.352Z] execute.enter {"mode":"tui","hasUI":true}
+[2026-08-17T19:41:29.548Z] execute.result {"decision":{"status":"cancelled"},"elapsedMs":2196}
+[2026-08-17T19:41:32.712Z] execute.enter {"mode":"tui","hasUI":true}
+[2026-08-17T19:41:33.701Z] execute.result {"decision":{"status":"cancelled"},"elapsedMs":989}

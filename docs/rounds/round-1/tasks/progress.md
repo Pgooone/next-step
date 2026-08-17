@@ -18,7 +18,7 @@
 | [T1-06](T1-06-外部手改处理与sourceRef写入.md) | 外部手改处理（check/reject/merge） | L1 | T1-04, T1-05 | 已完成 | 已过 |
 | [T1-07](T1-07-HarnessAdapter与AuditPort.md) | HarnessAdapter 6 动作 + AuditPort pi 实现 | L2 | T1-01, T1-04 | 已完成 | 已过 |
 | [T1-08](T1-08-SPIKE-CLI汇总卡交互.md) | **SPIKE**：CLI 汇总卡交互（execute 内 ctx.ui 实证，H7） | L2 实证 | T1-01；先于 T1-09/T1-10 | 已完成 | 已过 |
-| [T1-09](T1-09-CliDecisionPort.md) | CliDecisionPort（汇总卡 + 快捷键 + 取消分支） | L2 | T1-08, T1-05, T1-07 | 待开始 | 未过 |
+| [T1-09](T1-09-CliDecisionPort.md) | CliDecisionPort（汇总卡 + 快捷键 + 取消分支） | L2 | T1-08, T1-05, T1-07 | 已完成 | 已过 |
 | [T1-10](T1-10-工具注册表与doc会话装配.md) | 六工具注册表 + doc 会话装配（AC-1.1~1.4 主战场） | L2 | T1-05, T1-06, T1-07, T1-09 | 待开始 | 未过 |
 | [T1-11](T1-11-薄server.md) | 薄 server（10 端点 + web-panel.jsonl 审计） | L3 | T1-05, T1-06, T1-07 | 待开始 | 未过 |
 | [T1-12](T1-12-Web通用渲染器与受管文档面板.md) | Web 通用渲染器 + 受管文档面板（S1–S4） | L3 | T1-11, T1-04 | 待开始 | 未过 |
@@ -26,6 +26,6 @@
 
 **执行顺序建议**：T1-01 → T1-02 → T1-03 → T1-04 → T1-05 → T1-06（L1 承重墙先立）→ T1-07 → **T1-08（spike，须先于 T1-09/T1-10）** → T1-09 → T1-10（L2 工具与闸门）→ T1-11 → T1-12（L3 Web）→ T1-13（收官验收）。
 
-**挂账（P2，非阻塞）**：① domain 测试文件 pi import 防线弱化（reorg-verify P2-2）——T1-10 落地时补 linter 级检查（如 vitest 自检改扫全目录或 eslint no-restricted-imports）；② T1-08/09 fork 实证后裁决 `nextstep` 常量是否带点前缀（T1-01 遗留）。
+**挂账（P2，非阻塞）**：① domain 测试文件 pi import 防线弱化（reorg-verify P2-2）——T1-10 落地时补 linter 级检查（如 vitest 自检改扫全目录或 eslint no-restricted-imports）；② T1-09 复核 P3：前缀键（y/n/b）不清 render 缓存致提示滞留一帧（纯显示，一行修）——T1-10 顺手修；③ T1-08/09 fork 实证后裁决 `nextstep` 常量是否带点前缀（T1-01 遗留）。
 
 > 状态列更新当前进度；验收列仅在双层验收全过后标「已过」。卡号对应 `tasks/` 下的任务卡文件。

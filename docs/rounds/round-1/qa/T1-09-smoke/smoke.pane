@@ -1,0 +1,528 @@
+===== [pi 启动 4s] 03:40:47 =====
+
+ pi v0.84.2
+ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  probe.ts
+
+
+ Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys
+ on` to ~/.tmux.conf and restart tmux.
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+0.0%/128k (auto)                                                                   deepseek-v4-flash
+
+
+
+
+
+
+
+
+
+
+
+
+
+===== [启动超时] 03:41:17 =====
+
+ pi v0.84.2
+ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  probe.ts
+
+
+ Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys
+ on` to ~/.tmux.conf and restart tmux.
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+0.0%/128k (auto)                                                                   deepseek-v4-flash
+
+
+
+
+
+
+
+
+
+
+
+
+
+===== [启动完成] 03:41:19 =====
+
+ pi v0.84.2
+ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  probe.ts
+
+
+ Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys
+ on` to ~/.tmux.conf and restart tmux.
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+0.0%/128k (auto)                                                                   deepseek-v4-flash
+
+
+
+
+
+
+
+
+
+
+
+
+
+===== [汇总卡初始帧] 03:41:21 =====
+
+ pi v0.84.2
+ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  probe.ts
+
+          ════════════════════════════════════════════════════════════
+ Warning:   设计文档.md v3 → v4                                                           d-keys
+ on` to ~/  已决 0/2 块
+
+            ✏️ 修改 1/2 · 内核  [· 待决]
+ 调用 smok    新策略段落 B。
+            ✏️ 修改 2/2 · 部署  [· 待决]
+              新部署步骤。
+ The user
+            y<n> 接受 · n<n> 拒绝 · a 全收 · r 全拒 · b<n> 打回 · Enter 提交 · Esc/q 取消
+          ════════════════════════════════════════════════════════════
+ smoke_propose
+
+
+ ⠼ Working...
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑25 ↓47 R768 CH96.8% 0.7%/128k (auto)                                              deepseek-v4-flash
+
+===== [按 y1（块1 接受）] 03:41:22 =====
+
+ pi v0.84.2
+ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  probe.ts
+
+          ════════════════════════════════════════════════════════════
+ Warning:   设计文档.md v3 → v4                                                           d-keys
+ on` to ~/  已决 1/2 块
+
+            ✏️ 修改 1/2 · 内核  [✓ 接受]
+ 调用 smok    新策略段落 B。
+            ✏️ 修改 2/2 · 部署  [· 待决]
+              新部署步骤。
+ The user
+            y<n> 接受 · n<n> 拒绝 · a 全收 · r 全拒 · b<n> 打回 · Enter 提交 · Esc/q 取消
+          ════════════════════════════════════════════════════════════
+ smoke_propose
+
+
+ ⠧ Working...
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑25 ↓47 R768 CH96.8% 0.7%/128k (auto)                                              deepseek-v4-flash
+
+===== [按 a（全收）] 03:41:23 =====
+
+ pi v0.84.2
+ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  probe.ts
+
+          ════════════════════════════════════════════════════════════
+ Warning:   设计文档.md v3 → v4                                                           d-keys
+ on` to ~/  已决 2/2 块
+
+            ✏️ 修改 1/2 · 内核  [✓ 接受]
+ 调用 smok    新策略段落 B。
+            ✏️ 修改 2/2 · 部署  [✓ 接受]
+              新部署步骤。
+ The user
+            y<n> 接受 · n<n> 拒绝 · a 全收 · r 全拒 · b<n> 打回 · Enter 提交 · Esc/q 取消
+          ════════════════════════════════════════════════════════════
+ smoke_propose
+
+
+ ⠋ Working...
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑25 ↓47 R768 CH96.8% 0.7%/128k (auto)                                              deepseek-v4-flash
+
+===== [按 n2（打回块2 拒绝，混合档）] 03:41:24 =====
+
+ pi v0.84.2
+ escape interrupt · ctrl+c/ctrl+d clear/exit · / commands · ! bash · ctrl+o more
+ Press ctrl+o to show full startup help and loaded resources.
+
+ Pi can explain its own features and look up its docs. Ask it how to use or extend Pi.
+
+[Extensions]
+  probe.ts
+
+          ════════════════════════════════════════════════════════════
+ Warning:   设计文档.md v3 → v4                                                           d-keys
+ on` to ~/  已决 2/2 块
+
+            ✏️ 修改 1/2 · 内核  [✓ 接受]
+ 调用 smok    新策略段落 B。
+            ✏️ 修改 2/2 · 部署  [✗ 拒绝]
+              新部署步骤。
+ The user
+            y<n> 接受 · n<n> 拒绝 · a 全收 · r 全拒 · b<n> 打回 · Enter 提交 · Esc/q 取消
+          ════════════════════════════════════════════════════════════
+ smoke_propose
+
+
+ ⠹ Working...
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑25 ↓47 R768 CH96.8% 0.7%/128k (auto)                                              deepseek-v4-flash
+
+===== [Enter 提交] 03:41:26 =====
+ The user asks me to call the smoke_propose tool. Let me do that.
+
+
+ smoke_propose
+ smoke result: resolved, 2 块全决
+ ：69ed3fa6-304e-45f3-a1ae-2325e35aa3c4=accept,c23209db-fad9-4b2d-8ae7-48accf54fa54=reject
+
+
+ The smoke tool ran successfully. It constructed a 3-block proposal (though the result says 2
+ blocks were fully decided). Let me summarize the result concisely.
+
+ 冒烟完成 ✅
+
+ 结果： resolved，2 块全决，汇总卡已通过 CliDecisionPort 确认。
+
+ ┌──────────────────────────────────────┬────────┐
+ │ 提案 ID                              │ 决策   │
+ ├──────────────────────────────────────┼────────┤
+ │ 69ed3fa6-304e-45f3-a1ae-2325e35aa3c4 │ accept │
+ ├──────────────────────────────────────┼────────┤
+ │ c23209db-fad9-4b2d-8ae7-48accf54fa54 │ reject │
+ └──────────────────────────────────────┴────────┘
+
+ 流程走通，无异常。
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑174 ↓189 R1.5k CH83.8% 0.8%/128k (auto)                                           deepseek-v4-flash
+
+
+===== [场景1 结果帧] 03:41:26 =====
+ The user asks me to call the smoke_propose tool. Let me do that.
+
+
+ smoke_propose
+ smoke result: resolved, 2 块全决
+ ：69ed3fa6-304e-45f3-a1ae-2325e35aa3c4=accept,c23209db-fad9-4b2d-8ae7-48accf54fa54=reject
+
+
+ The smoke tool ran successfully. It constructed a 3-block proposal (though the result says 2
+ blocks were fully decided). Let me summarize the result concisely.
+
+ 冒烟完成 ✅
+
+ 结果： resolved，2 块全决，汇总卡已通过 CliDecisionPort 确认。
+
+ ┌──────────────────────────────────────┬────────┐
+ │ 提案 ID                              │ 决策   │
+ ├──────────────────────────────────────┼────────┤
+ │ 69ed3fa6-304e-45f3-a1ae-2325e35aa3c4 │ accept │
+ ├──────────────────────────────────────┼────────┤
+ │ c23209db-fad9-4b2d-8ae7-48accf54fa54 │ reject │
+ └──────────────────────────────────────┴────────┘
+
+ 流程走通，无异常。
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑174 ↓189 R1.5k CH83.8% 0.8%/128k (auto)                                           deepseek-v4-flash
+
+
+===== [场景2 卡片初始帧] 03:41:28 =====
+ The smoke tool ran successfully. It constructed a 3-block proposal (though the result says 2
+ blocks were fully decided). Let me summarize the result concisely.
+
+ 冒烟完成 ✅
+
+ 结果： resolved，2 块全决，汇总卡已通过 CliDecisionPort 确认。
+
+ ┌──────────────────────────────────────┬────────┐
+ │ 提案 ID                              │ 决策   │
+ ├──────────────────────────────────────┼────────┤
+ │ 69ed3fa════════════════════════════════════════════════════════════
+ ├────────  设计文档.md v3 → v4
+ │ c23209d  已决 0/2 块
+ └────────
+            ✏️ 修改 1/2 · 内核  [· 待决]
+ 流程走通     新策略段落 B。
+            ✏️ 修改 2/2 · 部署  [· 待决]
+              新部署步骤。
+ 再调用一
+            y<n> 接受 · n<n> 拒绝 · a 全收 · r 全拒 · b<n> 打回 · Enter 提交 · Esc/q 取消
+          ════════════════════════════════════════════════════════════
+
+ smoke_propose
+
+
+ ⠴ Working...
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑222 ↓219 R2.6k CH95.5% 0.9%/128k (auto)                                           deepseek-v4-flash
+===== [Enter（全 pending，应提示拒绝提交）] 03:41:29 =====
+ The smoke tool ran successfully. It constructed a 3-block proposal (though the result says 2
+ blocks were fully decided). Let me summarize the result concisely.
+
+ 冒烟完成 ✅
+
+ 结果： resolved，2 块全决，汇总卡已通过 CliDecisionPort 确认。
+
+ ┌──────────────────────────────────────┬────────┐
+ │ 提案 ID                              │ 决策   │
+ ├──────────────────────────────────────┼────────┤
+ │ 69ed3fa════════════════════════════════════════════════════════════
+ ├────────  设计文档.md v3 → v4
+ │ c23209d  已决 0/2 块
+ └────────
+            ✏️ 修改 1/2 · 内核  [· 待决]
+ 流程走通     新策略段落 B。
+            ✏️ 修改 2/2 · 部署  [· 待决]
+              新部署步骤。
+ 再调用一
+            仍有 2 块待决（1、2），拒绝提交——先用 y<n>/n<n> 逐块定夺
+            y<n> 接受 · n<n> 拒绝 · a 全收 · r 全拒 · b<n> 打回 · Enter 提交 · Esc/q 取消
+          ════════════════════════════════════════════════════════════
+ smoke_propose
+
+
+ ⠧ Working...
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑222 ↓219 R2.6k CH95.5% 0.9%/128k (auto)                                           deepseek-v4-flash
+===== [按 q 取消] 03:41:31 =====
+ ┌──────────────────────────────────────┬────────┐
+ │ 提案 ID                              │ 决策   │
+ ├──────────────────────────────────────┼────────┤
+ │ 69ed3fa6-304e-45f3-a1ae-2325e35aa3c4 │ accept │
+ ├──────────────────────────────────────┼────────┤
+ │ c23209db-fad9-4b2d-8ae7-48accf54fa54 │ reject │
+ └──────────────────────────────────────┴────────┘
+
+ 流程走通，无异常。
+
+
+ 再调用一次 smoke_propose 工具。
+
+
+
+ smoke_propose
+ smoke result: cancelled
+
+
+ 冒烟完成 ✅
+
+ 结果： cancelled —— 本次提案流程被取消，未产生任何决策。
+
+ 与上一次（resolved，2 块全决）相比，这次走的是取消分支，流程本身仍正常返回，无异常。
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑317 ↓278 R3.6k CH91.5% 0.9%/128k (auto)                                           deepseek-v4-flash
+
+
+===== [场景2 结果帧] 03:41:31 =====
+ ┌──────────────────────────────────────┬────────┐
+ │ 提案 ID                              │ 决策   │
+ ├──────────────────────────────────────┼────────┤
+ │ 69ed3fa6-304e-45f3-a1ae-2325e35aa3c4 │ accept │
+ ├──────────────────────────────────────┼────────┤
+ │ c23209db-fad9-4b2d-8ae7-48accf54fa54 │ reject │
+ └──────────────────────────────────────┴────────┘
+
+ 流程走通，无异常。
+
+
+ 再调用一次 smoke_propose 工具。
+
+
+
+ smoke_propose
+ smoke result: cancelled
+
+
+ 冒烟完成 ✅
+
+ 结果： cancelled —— 本次提案流程被取消，未产生任何决策。
+
+ 与上一次（resolved，2 块全决）相比，这次走的是取消分支，流程本身仍正常返回，无异常。
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑317 ↓278 R3.6k CH91.5% 0.9%/128k (auto)                                           deepseek-v4-flash
+
+
+===== [场景3 卡片初始帧] 03:41:33 =====
+
+ 再调用一次 smoke_propose 工具。
+
+
+
+ smoke_propose
+ smoke result: cancelled
+
+
+ 冒烟完成 ✅
+          ════════════════════════════════════════════════════════════
+ 结果： ca  设计文档.md v3 → v4
+            已决 0/2 块
+ 与上一次
+            ✏️ 修改 1/2 · 内核  [· 待决]
+              新策略段落 B。
+ 再调用一   ✏️ 修改 2/2 · 部署  [· 待决]
+              新部署步骤。
+
+ The user   y<n> 接受 · n<n> 拒绝 · a 全收 · r 全拒 · b<n> 打回 · Enter 提交 · Esc/q 取消
+          ════════════════════════════════════════════════════════════
+
+ smoke_propose
+
+
+ ⠴ Working...
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑356 ↓324 R4.7k CH96.7% 1.0%/128k (auto)                                           deepseek-v4-flash
+===== [按 Esc 取消] 03:41:35 =====
+
+
+ 冒烟完成 ✅
+
+ 结果： cancelled —— 本次提案流程被取消，未产生任何决策。
+
+ 与上一次（resolved，2 块全决）相比，这次走的是取消分支，流程本身仍正常返回，无异常。
+
+
+ 再调用一次 smoke_propose 工具。
+
+
+ The user wants me to call smoke_propose again. Let me do that.
+
+
+ smoke_propose
+ smoke result: cancelled
+
+
+ 冒烟完成 ✅
+
+ 结果： cancelled —— 与上一次相同，流程再次走了取消分支，无决策产生。
+
+ 连续两次取消，可确认取消路径行为稳定（幂等，无残留状态）。
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑458 ↓373 R5.9k CH91.9% 1.0%/128k (auto)                                           deepseek-v4-flash
+
+
+===== [场景3 结果帧] 03:41:35 =====
+
+
+ 冒烟完成 ✅
+
+ 结果： cancelled —— 本次提案流程被取消，未产生任何决策。
+
+ 与上一次（resolved，2 块全决）相比，这次走的是取消分支，流程本身仍正常返回，无异常。
+
+
+ 再调用一次 smoke_propose 工具。
+
+
+ The user wants me to call smoke_propose again. Let me do that.
+
+
+ smoke_propose
+ smoke result: cancelled
+
+
+ 冒烟完成 ✅
+
+ 结果： cancelled —— 与上一次相同，流程再次走了取消分支，无决策产生。
+
+ 连续两次取消，可确认取消路径行为稳定（幂等，无残留状态）。
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+/tmp/t1-09-smoke
+↑458 ↓373 R5.9k CH91.9% 1.0%/128k (auto)                                           deepseek-v4-flash
+
+
