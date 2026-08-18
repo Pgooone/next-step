@@ -236,7 +236,7 @@ describe("渲染器零领域判断（静态审查，卡内断言 3 的可执行�
 
   it("web/ 组件树零 pi import（只 fetch server 端点 + 画 presentation）", () => {
     for (const [i, src] of sources.entries()) {
-      expect(src).not.toContain("@pgoone/next-step-pi");
+      expect(src).not.toContain("@pgooone/next-step-pi");
       expect(src).not.toContain("node:fs");
       expect(src).not.toContain("node:path");
     }

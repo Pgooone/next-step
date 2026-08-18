@@ -1,5 +1,5 @@
 {
-  "name": "@pgoone/next-step-pi",
+  "name": "@pgooone/next-step-pi",
   "version": "0.1.0",
   "description": "Next-Step 受管文档闸门 pi 扩展：六工具（create_artifact/propose_edit/list_artifacts/get_artifact_diff/list_my_artifacts/get_artifact_history）+ 受管路径 tool_call 守卫 + 汇总卡逐块确认 + 审计落会话 JSONL；src/domain 零 pi import 的领域内核（ADR-001 B 单包形态）",
   "keywords": [

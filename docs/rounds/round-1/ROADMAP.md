@@ -54,7 +54,7 @@ L3 壳
 | 2 升级 | T1-03~06 | 在领域层补 v2.0 缺口：baseVersion 冲突校验、审计条目、闸门守卫、手改三动作——**仍然不知道 pi** | 纯单测（无模型无终端，毫秒级） |
 | 3 包装 | T1-07 | pi 接线层（`src/pi/`，唯一 import pi 的文件夹）：六动作 + AuditPort 的 appendEntry 实现 | `SessionManager.inMemory()` 集成测试 |
 | 4 暴露 | T1-09/10 | 六工具注册（create_artifact / propose_edit / list_artifacts + 只读三件套）+ doc 会话装配 | AC-1.1~1.4；工具集物理无 write/edit |
-| 5 分发 | 发行轨 | `@pgoone/next-step-pi` 打成 pi 扩展包（官方 Package 机制，`pi install` 可装）；fork 后随 `nextstep` 发行内置 | `pi install` 装上即得六工具 |
+| 5 分发 | 发行轨 | `@pgooone/next-step-pi` 打成 pi 扩展包（官方 Package 机制，`pi install` 可装）；fork 后随 `nextstep` 发行内置 | `pi install` 装上即得六工具 |
 
 > **ADR-001 B 重组后形态（2026-08-17）**：`packages/core` + `packages/pi-ext` 已合并为单包 `packages/next-step-pi`（src/domain 零 pi import 软纪律 / src/pi 接线 / src/ports 审计口），显式翻译官接口已废除。上文步骤 1–3 的「两包」表述为当时历史，物理路径以仓库现状为准。
 
@@ -62,15 +62,15 @@ L3 壳
 
 ## 四、专项路线：发行轨（两步走，用户拍板 2026-08-18「A 先行再 B」）
 
-**A · 扩展包发行（先行）**：补 pi 扩展入口（default export 工厂 + package.json pi 字段）→ `pi install npm:@pgoone/next-step-pi` 一行安装（用户需已有 pi）——最快真实可用，兼作包形态实战验证。
-**B · fork 发行（随后）**：fork 品牌化（CONFIG_DIR_NAME / `nextstep` 命令 / TUI 字样）+ UPSTREAM 纪律 → `npm i -g @pgoone/nextstep` 自带内核的独立产品；内置 A 的扩展包，A 的发布即 B 的组件。
+**A · 扩展包发行（先行）**：补 pi 扩展入口（default export 工厂 + package.json pi 字段）→ `pi install npm:@pgooone/next-step-pi` 一行安装（用户需已有 pi）——最快真实可用，兼作包形态实战验证。
+**B · fork 发行（随后）**：fork 品牌化（CONFIG_DIR_NAME / `nextstep` 命令 / TUI 字样）+ UPSTREAM 纪律 → `npm i -g @pgooone/nextstep` 自带内核的独立产品；内置 A 的扩展包，A 的发布即 B 的组件。
 
 | 步 | 动作 | 说明 |
 |---|---|---|
 | 1 | fork pi 0.84.2 到 monorepo 的 `pi-fork` | D1 拍板基线；UPSTREAM.md 对照纪律从第一天建立 |
-| 2 | 品牌层改造（唯一允许的 diff） | `CONFIG_DIR_NAME="nextstep"`（官方导出，支持 rebrand）、npm 包名 `@pgoone/*`、CLI 命令 `nextstep`、TUI 品牌字样 |
+| 2 | 品牌层改造（唯一允许的 diff） | `CONFIG_DIR_NAME="nextstep"`（官方导出，支持 rebrand）、npm 包名 `@pgooone/*`、CLI 命令 `nextstep`、TUI 品牌字样 |
 | 3 | 数据目录统一 | 会话目录从 `~/.pi/` 迁到 `.nextstep` 体系——只改 T1-01 的单点常量 + 官方配置位（H1 实证在此步） |
 | 4 | 内核 diff 最小化清单登记 | 每条 diff 逐条登记；loop 级改动一律单独评审（D1 纪律） |
-| 5 | npm 发布 | `npm i -g @pgoone/nextstep` → `nextstep` 命令 = 内置全部扩展的发行版 |
+| 5 | npm 发布 | `npm i -g @pgooone/nextstep` → `nextstep` 命令 = 内置全部扩展的发行版 |
 
 时机：T1 出口判据全绿后启动；可与第二期开发并行（发行轨只动品牌层，第二期只动扩展/领域层，不冲突）。

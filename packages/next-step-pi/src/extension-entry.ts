@@ -11,7 +11,7 @@ import { translateToolDef } from "./pi/tool-translation";
 
 /**
  * 发行轨 A · pi 扩展入口（default export factory，pi.dev 扩展语义）——
- * `pi install npm:@pgoone/next-step-pi` 一行安装即得六工具 + 闸门。
+ * `pi install npm:@pgooone/next-step-pi` 一行安装即得六工具 + 闸门。
  *
  * 本文件是纯胶水，零领域逻辑（判断全在已验收的 domain / 装配模块）：
  *

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { AuditEntryPayload } from "@pgoone/next-step-pi/src/domain/audit/entries.ts";
+import type { AuditEntryPayload } from "@pgooone/next-step-pi/src/domain/audit/entries.ts";
 
 /**
  * Web 面板审计通道（T1-11，P2-1 裁量落地）——**直写固定会话文件 web-panel.jsonl**。

@@ -6,37 +6,37 @@ import {
   type ServerResponse,
 } from "node:http";
 import { extname, isAbsolute, join, normalize } from "node:path";
-import { createEntryAuditPort, type AuditSessionManager } from "@pgoone/next-step-pi/src/ports/audit-port.ts";
+import { createEntryAuditPort, type AuditSessionManager } from "@pgooone/next-step-pi/src/ports/audit-port.ts";
 import {
   ArtifactError,
   ArtifactService,
-} from "@pgoone/next-step-pi/src/domain/domain/artifact-service.ts";
+} from "@pgooone/next-step-pi/src/domain/domain/artifact-service.ts";
 import {
   PendingChangeError,
   PendingChangeStore,
   computeReplaceDiffBlocks,
   type DiffBlock,
-} from "@pgoone/next-step-pi/src/domain/domain/pending-change-service.ts";
-import { ProjectError, ProjectRegistry } from "@pgoone/next-step-pi/src/domain/domain/project-registry.ts";
+} from "@pgooone/next-step-pi/src/domain/domain/pending-change-service.ts";
+import { ProjectError, ProjectRegistry } from "@pgooone/next-step-pi/src/domain/domain/project-registry.ts";
 import {
   checkExternalModification,
   mergeExternalAsProposal,
   rejectExternalModification,
-} from "@pgoone/next-step-pi/src/domain/domain/external-modification-service.ts";
+} from "@pgooone/next-step-pi/src/domain/domain/external-modification-service.ts";
 import {
   GateError,
   discardWithAudit,
   rollbackUndoWithAudit,
   rollbackWithAudit,
   type GateDeps,
-} from "@pgoone/next-step-pi/src/domain/gate/pending-gate-service.ts";
-import type { DecisionPort } from "@pgoone/next-step-pi/src/domain/gate/ports.ts";
+} from "@pgooone/next-step-pi/src/domain/gate/pending-gate-service.ts";
+import type { DecisionPort } from "@pgooone/next-step-pi/src/domain/gate/ports.ts";
 import type { WebPanelJsonlEntry } from "./web-panel-audit";
 import {
   buildApprovalResponse,
   buildArtifactResolved,
-} from "@pgoone/next-step-pi/src/domain/audit/entries.ts";
-import { buildProposalPresentation } from "@pgoone/next-step-pi/src/domain/presentation/builders.ts";
+} from "@pgooone/next-step-pi/src/domain/audit/entries.ts";
+import { buildProposalPresentation } from "@pgooone/next-step-pi/src/domain/presentation/builders.ts";
 
 /**
  * L3 薄 server（T1-11，详细设计 §6 最小接口表 10 端点）。

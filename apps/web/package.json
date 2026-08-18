@@ -1,5 +1,5 @@
 {
-  "name": "@pgoone/next-step-web",
+  "name": "@pgooone/next-step-web",
   "version": "0.0.0",
   "private": true,
   "description": "L3 Web 壳：薄 server + 前端（high-level-design §5；T1-01 仅占位骨架，后续卡实现）",
@@ -16,7 +16,7 @@
     "e2e": "bash e2e/run-e2e.sh"
   },
   "devDependencies": {
-    "@pgoone/next-step-pi": "*",
+    "@pgooone/next-step-pi": "*",
     "@types/node": "^24.0.0",
     "esbuild": "^0.28.0",
     "playwright-core": "^1.62.1",

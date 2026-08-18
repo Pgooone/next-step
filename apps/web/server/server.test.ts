@@ -3,10 +3,10 @@ import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ArtifactService } from "@pgoone/next-step-pi/src/domain/domain/artifact-service.ts";
-import { checkExternalModification } from "@pgoone/next-step-pi/src/domain/domain/external-modification-service.ts";
-import { PendingChangeStore } from "@pgoone/next-step-pi/src/domain/domain/pending-change-service.ts";
-import { ProjectRegistry } from "@pgoone/next-step-pi/src/domain/domain/project-registry.ts";
+import { ArtifactService } from "@pgooone/next-step-pi/src/domain/domain/artifact-service.ts";
+import { checkExternalModification } from "@pgooone/next-step-pi/src/domain/domain/external-modification-service.ts";
+import { PendingChangeStore } from "@pgooone/next-step-pi/src/domain/domain/pending-change-service.ts";
+import { ProjectRegistry } from "@pgooone/next-step-pi/src/domain/domain/project-registry.ts";
 import { createWebServer } from "./create-server";
 import { WebPanelSessionManager } from "./web-panel-audit";
 
