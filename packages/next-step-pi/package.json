@@ -1,8 +1,14 @@
 {
   "name": "@pgoone/next-step-pi",
-  "version": "0.0.0",
-  "private": true,
-  "description": "唯一 pi 包（ADR-001 B 单包形态）：src/domain 零 pi import 的领域内核 + src/pi 与 src/ports 接线（pi 0.84.2 精确 pin，升级走显式回归）",
+  "version": "0.1.0",
+  "description": "Next-Step 受管文档闸门 pi 扩展：六工具（create_artifact/propose_edit/list_artifacts/get_artifact_diff/list_my_artifacts/get_artifact_history）+ 受管路径 tool_call 守卫 + 汇总卡逐块确认 + 审计落会话 JSONL；src/domain 零 pi import 的领域内核（ADR-001 B 单包形态）",
+  "keywords": [
+    "pi-package",
+    "next-step",
+    "document",
+    "artifact",
+    "gate"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -11,12 +17,28 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./src/*": "./src/*"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "!src/pi/test-helpers.ts"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/extension-entry.ts"
+    ]
+  },
   "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.84.2",
     "@types/node": "^24.0.0",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"
   },
-  "dependencies": {
-    "@earendil-works/pi-coding-agent": "0.84.2"
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
   }
 }
