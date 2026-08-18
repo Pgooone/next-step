@@ -44,7 +44,7 @@ body{font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaH
 .banner.ok{background:var(--green-bg); border:1px solid var(--green-line); color:#16603a}
 .hidden{display:none}
 .banner .btn{padding:4px 12px; font-size:13px}
-.ext-excerpt{flex-basis:100%; font-size:12.5px; color:#8a6f33; border-left:3px solid var(--yellow-line); padding-left:8px; font-family:ui-monospace,Consolas,monospace; white-space:pre-wrap; word-break:break-all}
+.ext-excerpt{flex-basis:100%; font-size:12.5px; color:#8a6f33; border-left:2px solid var(--yellow-line); padding-left:8px; font-family:ui-monospace,Consolas,monospace; white-space:pre-wrap; word-break:break-all}
 .diff-view{display:block}
 .diff-view-title{font-weight:650; margin-bottom:6px}
 .diff-box{font-size:13px; max-height:260px; overflow-y:auto; border:1px solid var(--line); border-radius:6px; background:var(--bg)}

@@ -22,10 +22,10 @@
 | [T1-10](T1-10-工具注册表与doc会话装配.md) | 六工具注册表 + doc 会话装配（AC-1.1~1.4 主战场） | L2 | T1-05, T1-06, T1-07, T1-09 | 已完成 | 已过 |
 | [T1-11](T1-11-薄server.md) | 薄 server（10 端点 + web-panel.jsonl 审计） | L3 | T1-05, T1-06, T1-07 | 已完成 | 已过 |
 | [T1-12](T1-12-Web通用渲染器与受管文档面板.md) | Web 通用渲染器 + 受管文档面板（S1–S4） | L3 | T1-11, T1-04 | 已完成 | 已过 |
-| [T1-13](T1-13-WebE2E与出口判据收官.md) | Web E2E + 出口判据收官（真浏览器 + 通道①） | L3 验收 | T1-10, T1-11, T1-12 | 待开始 | 未过 |
+| [T1-13](T1-13-WebE2E与出口判据收官.md) | Web E2E + 出口判据收官（真浏览器 + 通道①） | L3 验收 | T1-10, T1-11, T1-12 | 已完成 | 已过 |
 
 **执行顺序建议**：T1-01 → T1-02 → T1-03 → T1-04 → T1-05 → T1-06（L1 承重墙先立）→ T1-07 → **T1-08（spike，须先于 T1-09/T1-10）** → T1-09 → T1-10（L2 工具与闸门）→ T1-11 → T1-12（L3 Web）→ T1-13（收官验收）。
 
-**挂账（P2，非阻塞）**：① domain 测试文件 pi import 防线弱化（reorg-verify P2-2）——T1-10 落地时补 linter 级检查（如 vitest 自检改扫全目录或 eslint no-restricted-imports）；② T1-09 复核 P3：前缀键（y/n/b）不清 render 缓存致提示滞留一帧（纯显示，一行修）——T1-10 顺手修；③ T1-10 P2×2：守卫「任何工具」收窄为 write/edit、symlink/侧车盲区——第二期 coding 模式前收口；④ T1-10 P3：probe 重名坑；⑥ T1-11 P3-1：详设 diffBetweenVersions 无卡承接，登记 consciously cut（一期不需要）；⑦ T1-11 架构裁定；⑧ T1-12 P1-b：回滚灰化块仅窄路径可达+刷新后横幅丢，口径升级登记（标准流面板打开即无 pending，恒降级形态）——第二期收口；⑨ T1-12 P2×2：回滚后抽屉遮横幅、S4 横幅文件名硬编码；P1-a 已修（undo 文案 fromVersion→toVersion 三处）；零框架裁量+审计回放端点经裁决采纳、详设 §6 待补登记：web 审计直写 JSONL 维持（pi _persist 无 assistant 永不落盘），第三期合并时对照复验；⑤ T1-08/09 fork 实证后裁决 `nextstep` 常量是否带点前缀（T1-01 遗留）。
+**挂账（P2，非阻塞）**：① domain 测试文件 pi import 防线弱化（reorg-verify P2-2）——T1-10 落地时补 linter 级检查（如 vitest 自检改扫全目录或 eslint no-restricted-imports）；② T1-09 复核 P3：前缀键（y/n/b）不清 render 缓存致提示滞留一帧（纯显示，一行修）——T1-10 顺手修；③ T1-10 P2×2：守卫「任何工具」收窄为 write/edit、symlink/侧车盲区——第二期 coding 模式前收口；④ T1-10 P3：probe 重名坑；⑥ T1-11 P3-1：详设 diffBetweenVersions 无卡承接，登记 consciously cut（一期不需要）；⑦ T1-11 架构裁定；⑧ T1-12 P1-b：回滚灰化块仅窄路径可达+刷新后横幅丢，口径升级登记（标准流面板打开即无 pending，恒降级形态）——第二期收口；⑨ T1-13 P2：merge 拦截时面板误报「已转为提案」（panel.ts 不查 pending_exists，约 10 行）——二期优先；⑩ T1-12 P2×2：回滚后抽屉遮横幅、S4 横幅文件名硬编码；P1-a 已修（undo 文案 fromVersion→toVersion 三处）；零框架裁量+审计回放端点经裁决采纳、详设 §6 待补登记：web 审计直写 JSONL 维持（pi _persist 无 assistant 永不落盘），第三期合并时对照复验；⑤ T1-08/09 fork 实证后裁决 `nextstep` 常量是否带点前缀（T1-01 遗留）。
 
 > 状态列更新当前进度；验收列仅在双层验收全过后标「已过」。卡号对应 `tasks/` 下的任务卡文件。

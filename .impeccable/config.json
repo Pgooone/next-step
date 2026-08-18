@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "apps/web/web/styles.css"
+        ],
+        "createdAt": "2026-08-17T21:42:28.256Z",
+        "reason": "lead decided: .ext-excerpt 是 EXTERNAL_MODIFIED 横幅内的磁盘原文 blockquote 引文块（等宽预览），单侧细线是引用语义的领域范式表达而非装饰性 side-tab；已从 3px 降至 2px 弱化，非用户确认项"
+      }
+    ]
+  }
+}

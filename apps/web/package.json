@@ -12,12 +12,14 @@
     "typecheck": "tsc --noEmit",
     "build:server": "node scripts/build-server.mjs",
     "server": "npm run build:server && npm run build:web && node dist-server/index.js",
-    "build:web": "node scripts/build-web.mjs"
+    "build:web": "node scripts/build-web.mjs",
+    "e2e": "bash e2e/run-e2e.sh"
   },
   "devDependencies": {
     "@pgoone/next-step-pi": "*",
     "@types/node": "^24.0.0",
     "esbuild": "^0.28.0",
+    "playwright-core": "^1.62.1",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"
   }
