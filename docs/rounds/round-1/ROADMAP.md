@@ -60,7 +60,10 @@ L3 壳
 
 要点：第 1-2 步的产物永远可以脱离 pi 单测、换地基不重写；「pi 的 Package」身份只发生在第 3-5 步的包装层。
 
-## 四、专项路线：fork 发行轨（T1 出口后启动，不混进 13 卡）
+## 四、专项路线：发行轨（两步走，用户拍板 2026-08-18「A 先行再 B」）
+
+**A · 扩展包发行（先行）**：补 pi 扩展入口（default export 工厂 + package.json pi 字段）→ `pi install npm:@pgoone/next-step-pi` 一行安装（用户需已有 pi）——最快真实可用，兼作包形态实战验证。
+**B · fork 发行（随后）**：fork 品牌化（CONFIG_DIR_NAME / `nextstep` 命令 / TUI 字样）+ UPSTREAM 纪律 → `npm i -g @pgoone/nextstep` 自带内核的独立产品；内置 A 的扩展包，A 的发布即 B 的组件。
 
 | 步 | 动作 | 说明 |
 |---|---|---|
